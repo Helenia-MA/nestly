@@ -1,0 +1,3 @@
+CREATE DATABASE nestly_db;
+CREATE USER nestly_user WITH PASSWORD 'nestly1234';
+GRANT ALL PRIVILEGES ON DATABASE nestly_db TO nestly_user;

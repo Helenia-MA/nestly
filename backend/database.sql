@@ -1,3 +1,22 @@
 CREATE DATABASE nestly_db;
 CREATE USER nestly_user WITH PASSWORD 'nestly1234';
 GRANT ALL PRIVILEGES ON DATABASE nestly_db TO nestly_user;
+
+-- \c nestly_db;
+GRANT ALL ON SCHEMA public TO nestly_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO nestly_user;
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    group VARCHAR(100) NULL,
+    icon VARCHAR(255) NULL
+);

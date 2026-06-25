@@ -913,3 +913,191 @@ def get_business_stats(business_id, user_id):
         "cancelled_this_week": cancelled_this_week,
         "todays_upcoming": [b.to_dict() for b in todays_bookings]
     }, None
+
+# ADMIN FUNCTIONS
+# verification that the user is an admin
+def check_admin(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return None, "User not found"
+    if not user.is_admin:
+        return None, "Admin access required"
+    return user, None
+
+# getting admin stats
+def get_admin_stats(user_id):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    now = datetime.now()
+    today_start = datetime.combine(now.date(), datetime.min.time())
+    today_end = datetime.combine(now.date(), datetime.max.time())
+
+    week_start = now - timedelta(days=now.weekday())
+    week_start = datetime.combine(week_start.date(), datetime.min.time())
+    week_end = week_start + timedelta(days=6)
+    week_end = datetime.combine(week_end.date(), datetime.max.time())
+
+    total_users = User.query.count()
+
+    total_businesses = Business.query.count()
+    published_businesses = Business.query.filter_by(status='published').count()
+    draft_businesses = Business.query.filter_by(status='draft').count()
+    paused_businesses = Business.query.filter_by(status='paused').count()
+
+    total_bookings = Booking.query.count()
+    cancelled_bookings = Booking.query.filter(
+        Booking.status.in_(['cancelled_by_customer', 'cancelled_by_business'])
+    ).count()
+    bookings_today = Booking.query.filter(
+        Booking.start_time >= today_start,
+        Booking.start_time <= today_end
+    ).count()
+    bookings_this_week = Booking.query.filter(
+        Booking.start_time >= week_start,
+        Booking.start_time <= week_end
+    ).count()
+
+    new_users_this_week = User.query.filter(
+        User.created_at >= week_start,
+        User.created_at <= week_end
+    ).count()
+
+    return {
+        "total_users": total_users,
+        "total_businesses": total_businesses,
+        "cancelled_bookings": cancelled_bookings,
+        "businesses_by_status": {
+            "published": published_businesses,
+            "draft": draft_businesses,
+            "paused": paused_businesses
+        },
+        "total_bookings": total_bookings,
+        "bookings_today": bookings_today,
+        "bookings_this_week": bookings_this_week,
+        "new_users_this_week": new_users_this_week
+        }, None
+
+# getting all businesses for admin view
+def admin_get_businesses(user_id, filters=None):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    query = Business.query
+
+    if filters:
+        if filters.get('status'):
+            query = query.filter_by(status=filters['status'])
+
+        if filters.get('owner_id'):
+            query = query.filter_by(owner_id=int(filters['owner_id']))
+
+        if filters.get('search'):
+            search_term = f"%{filters['search']}%"
+            query = query.filter(Business.name.ilike(search_term))
+
+        if filters.get('is_verified'):
+            is_verified = filters['is_verified'].lower() == 'true'
+            query = query.filter_by(is_verified=is_verified)
+
+    businesses = query.order_by(Business.created_at.desc()).all()
+    return businesses, None
+
+# getting all users for admin view
+def admin_get_users(user_id, filters=None):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    query = User.query
+
+    if filters:
+        if filters.get('search'):
+            search_term = f"%{filters['search']}%"
+            query = query.filter(
+                (User.name.ilike(search_term)) |
+                (User.email.ilike(search_term)) |
+                (User.phone.ilike(search_term))
+            )
+
+        if filters.get('is_business_owner'):
+            is_owner = filters['is_business_owner'].lower() == 'true'
+            query = query.filter_by(is_business_owner=is_owner)
+
+        if filters.get('is_admin'):
+            is_admin = filters['is_admin'].lower() == 'true'
+            query = query.filter_by(is_admin=is_admin)
+
+        if filters.get('is_suspended'):
+            is_suspended = filters['is_suspended'].lower() == 'true'
+            query = query.filter_by(is_suspended=is_suspended)
+
+    users = query.order_by(User.created_at.desc()).all()
+    return users, None
+
+# verifying a business
+def admin_verify_business(user_id, business_id):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    business = Business.query.get(business_id)
+    if not business:
+        return None, "Business not found"
+
+    # toggling the verification status
+    business.is_verified = not business.is_verified
+    db.session.commit()
+    return business, None
+
+def admin_update_business_status(user_id, business_id, new_status):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    valid_status = ['draft', 'published', 'paused']
+    if new_status not in valid_status:
+        return None, "Invalid status"
+
+    business = Business.query.get(business_id)
+    if not business:
+        return None, "Business not found"
+
+    business.status = new_status
+    db.session.commit()
+
+    return business, None
+
+# suspending user
+def admin_suspend_user(user_id, target_user_id):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    target_user = User.query.get(target_user_id)
+    if not target_user:
+        return None, "User not found"
+
+    if target_user.is_admin:
+        return None, "Cannot suspend an admin user"
+
+    target_user.is_suspended = True
+    db.session.commit()
+
+    return target_user, None
+
+def admin_unsuspend_user(user_id, target_user_id):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    target_user = User.query.get(target_user_id)
+    if not target_user:
+        return None, "User not found"
+
+    target_user.is_suspended = False
+    db.session.commit()
+
+    return target_user, None

@@ -464,3 +464,127 @@ def get_business_stats(business_id):
         return jsonify({'error': error}), 400
 
     return jsonify({'stats': stats}), 200
+
+# ADMIN ROUTES
+
+@admin_bp.route('/stats', methods=['GET'])
+@jwt_required()
+def get_admin_stats():
+    user_id = get_jwt_identity()
+
+    stats, error = services.get_admin_stats(user_id)
+
+    if error:
+        return jsonify({'error': error}), 403
+
+    return jsonify({'stats': stats}), 200
+
+
+@admin_bp.route('/businesses', methods=['GET'])
+@jwt_required()
+def admin_get_businesses():
+    user_id = get_jwt_identity()
+    filters = {
+        'status': request.args.get('status'),
+        'search': request.args.get('search'),
+        'is_verified': request.args.get('is_verified'),
+        'owner_id': request.args.get('owner_id')
+    }
+
+    businesses, error = services.admin_get_businesses(user_id, filters)
+
+    if error:
+        return jsonify({'error': error}), 403
+
+    return jsonify({
+        'businesses': [b.to_dict() for b in businesses]
+    }), 200
+
+
+@admin_bp.route('/users', methods=['GET'])
+@jwt_required()
+def admin_get_users():
+    user_id = get_jwt_identity()
+    filters = {
+        'search': request.args.get('search'),
+        'is_business_owner': request.args.get('is_business_owner'),
+        'is_suspended': request.args.get('is_suspended'),
+        'is_admin': request.args.get('is_admin')
+    }
+
+    users, error = services.admin_get_users(user_id, filters)
+
+    if error:
+        return jsonify({'error': error}), 403
+
+    return jsonify({
+        'users': [u.to_dict() for u in users]
+    }), 200
+
+
+@admin_bp.route('/businesses/<int:business_id>/verify', methods=['PATCH'])
+@jwt_required()
+def admin_verify_business(business_id):
+    user_id = get_jwt_identity()
+
+    business, error = services.admin_verify_business(user_id, business_id)
+
+    if error:
+        return jsonify({'error': error}), 403
+
+    return jsonify({
+        'message': f'Business {"verified" if business.is_verified else "unverified"} successfully',
+        'business': business.to_dict()
+    }), 200
+
+
+@admin_bp.route('/users/<int:target_user_id>/suspend', methods=['PATCH'])
+@jwt_required()
+def admin_suspend_user(target_user_id):
+    user_id = get_jwt_identity()
+
+    user, error = services.admin_suspend_user(user_id, target_user_id)
+
+    if error:
+        return jsonify({'error': error}), 403
+
+    return jsonify({
+        'message': 'User suspended successfully',
+        'user': user.to_dict()
+    }), 200
+
+
+@admin_bp.route('/users/<int:target_user_id>/unsuspend', methods=['PATCH'])
+@jwt_required()
+def admin_unsuspend_user(target_user_id):
+    user_id = get_jwt_identity()
+
+    user, error = services.admin_unsuspend_user(user_id, target_user_id)
+
+    if error:
+        return jsonify({'error': error}), 403
+
+    return jsonify({
+        'message': 'User unsuspended successfully',
+        'user': user.to_dict()
+    }), 200
+
+
+@admin_bp.route('/businesses/<int:business_id>/status', methods=['PUT'])
+@jwt_required()
+def admin_update_business_status(business_id):
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    new_status = data.get('status')
+
+    business, error = services.admin_update_business_status(
+        user_id, business_id, new_status
+    )
+
+    if error:
+        return jsonify({'error': error}), 403
+
+    return jsonify({
+        'message': f'Business status updated to {new_status}',
+        'business': business.to_dict()
+    }), 200

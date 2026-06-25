@@ -65,6 +65,9 @@ def login_user(data):
     if user.is_suspended:
         return None, "This account has been suspended. Please contact support."
 
+    if not user.password_hash:
+        return None, "This account uses Google sign in. Please use Google to log in."
+
     # checking the password
     password_matches = bcrypt.checkpw(
         password.encode('utf-8'), user.password_hash.encode('utf-8')
@@ -72,6 +75,9 @@ def login_user(data):
 
     if not password_matches:
         return None, "incorrect password"
+
+    user.last_login = datetime.utcnow()
+    db.session.commit()
 
     return user, None
 
@@ -827,3 +833,83 @@ def get_business_bookings(business_id, user_id, filters=None):
     bookings = query.order_by(Booking.start_time.desc()).all()
 
     return bookings, None
+
+
+# BUSINESS OWNER PROFILE/DASHBOARD
+def get_business_stats(business_id, user_id):
+    business = Business.query.get(business_id)
+    if not business:
+        return None, "Business not found"
+
+    if business.owner_id != int(user_id):
+        return None, "You don't have permission to view stats for this business"
+
+    now = datetime.now()
+
+    # today's date range
+    today_start = datetime.combine(now.date(), datetime.min.time())
+    today_end = datetime.combine(now.date(), datetime.max.time())
+
+    # this week's date range
+    week_start = now - timedelta(days=now.weekday())
+    week_start = datetime.combine(week_start.date(), datetime.min.time())
+    week_end = week_start + timedelta(days=6)
+    week_end = datetime.combine(week_end.date(), datetime.max.time())
+
+    bookings_today = Booking.query.filter(
+        Booking.business_id == business_id,
+        Booking.start_time >= today_start,
+        Booking.start_time <= today_end,
+        Booking.status == 'confirmed'
+    ).count()
+
+    # total bookings this week
+    bookings_this_week = Booking.query.filter(
+        Booking.business_id == business_id,
+        Booking.start_time >= week_start,
+        Booking.start_time <= week_end,
+        Booking.status == 'confirmed'
+    ).count()
+
+    # new bookings since last login
+    owner = User.query.get(user_id)
+    new_since_login = 0
+    if owner.last_login:
+        new_since_login = Booking.query.filter(
+            Booking.business_id == business_id,
+            Booking.created_at > owner.last_login
+        ).count()
+
+    # today's upcoming appointments
+    todays_bookings = Booking.query.filter(
+        Booking.business_id == business_id,
+        Booking.start_time >= now,
+        Booking.start_time <= today_end,
+        Booking.status == 'confirmed'
+    ).order_by(Booking.start_time).all()
+
+    # cancelled bookings
+    # this week
+    cancelled_this_week = Booking.query.filter(
+        Booking.business_id == business_id,
+        Booking.status.in_(['cancelled_by_customer', 'cancelled_by_business']),
+        Booking.start_time >= week_start,
+        Booking.start_time <= week_end
+    ).count()
+
+    # today
+    cancelled_today = Booking.query.filter(
+        Booking.business_id == business_id,
+        Booking.status.in_(['cancelled_by_customer', 'cancelled_by_business']),
+        Booking.start_time >= today_start,
+        Booking.start_time <= today_end
+    ).count()
+
+    return {
+        "bookings_today": bookings_today,
+        "bookings_this_week": bookings_this_week,
+        "new_since_login": new_since_login,
+        "cancelled_today": cancelled_today,
+        "cancelled_this_week": cancelled_this_week,
+        "todays_upcoming": [b.to_dict() for b in todays_bookings]
+    }, None

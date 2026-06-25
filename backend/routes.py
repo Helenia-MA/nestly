@@ -452,3 +452,15 @@ def get_business_bookings(business_id):
     return jsonify({
         'bookings' : [b.to_dict() for b in bookings]
     }), 200
+
+# business stats
+@business_bp.route('/<int:business_id>/stats', methods=['GET'])
+@jwt_required()
+def get_business_stats(business_id):
+    user_id = get_jwt_identity()
+    stats, error = services.get_business_stats(business_id, user_id)
+
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({'stats': stats}), 200

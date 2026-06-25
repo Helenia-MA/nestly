@@ -15,6 +15,7 @@ class User(db.Model):
     profile_photo = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_suspended = db.Column(db.Boolean, default=False)
+    last_login = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
         return {
@@ -26,7 +27,8 @@ class User(db.Model):
             'is_admin': self.is_admin,
             'profile_photo': self.profile_photo,
             'created_at': self.created_at.isoformat(),
-            'is_suspended': self.is_suspended
+            'is_suspended': self.is_suspended,
+            'last_login': self.last_login.isoformat() if self.last_login else None
         }
 
 class Category(db.Model):

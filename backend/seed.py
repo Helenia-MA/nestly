@@ -18,7 +18,7 @@ categories = [
     {"name": "House Cleaning", "group": "Home & Property", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREfoO-seMehfB9NdQZ5mIFoUKiy7X4mtXolA&s"},
     {"name": "Gardening & Landscaping", "group": "Home & Property", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrpxDB1Lh77Gipzj0ufosOVduz8Efrc5LF9w&s"},
     {"name": "Painting & Repairs", "group": "Home & Property", "icon": "https://www.shutterstock.com/image-vector/house-repair-icon-painting-services-260nw-285143516.jpg"},
-    {"name": "Plumbing", "group": "Home & Property", "icon": "thttps://www.shutterstock.com/image-vector/plumbing-service-icon-representing-repair-260nw-1360859993.jpg"},
+    {"name": "Plumbing", "group": "Home & Property", "icon": "https://www.shutterstock.com/image-vector/plumbing-service-icon-representing-repair-260nw-1360859993.jpg"},
     {"name": "Electrical", "group": "Home & Property", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvIMILgOQOHe62dRg1WgyNIhU0-iP3bLvMdA&s"},
     {"name": "Pest Control", "group": "Home & Property", "icon": "https://cdn-icons-png.flaticon.com/512/16872/16872629.png"},
     {"name": "Moving & Packing", "group": "Home & Property", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSUMn5WGPKzBbF3qKR_PYlOx8a9lj_O_fhNg&s"},

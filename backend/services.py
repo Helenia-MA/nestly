@@ -311,10 +311,10 @@ def update_service(business_id, service_id, user_id, data):
     allowed_fields = ['name', 'description', 'price', 'duration_minutes', 'price_is_negotiable']
     for field in allowed_fields:
         if field in data:
-            setattr(business, field, data[field])
+            setattr(service, field, data[field])
 
     db.session.commit()
-    return business, None
+    return service, None
 
 # deleting a service
 def delete_service(business_id, service_id, user_id):

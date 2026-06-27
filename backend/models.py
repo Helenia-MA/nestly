@@ -138,7 +138,7 @@ class BusinessPhoto(db.Model):
         }
 
 class WorkingHours(db.Model):
-    __tablename__ = 'working hours'
+    __tablename__ = 'working_hours'
 
     id = db.Column(db.Integer, primary_key=True)
     business_id = db.Column(db.Integer, db.ForeignKey('businesses.id'), nullable=False)
@@ -161,7 +161,7 @@ class WorkingHours(db.Model):
 
 # handling breaks during working hours eg lunch breaks
 class BlockedTime(db.Model):
-    __tablename__ = 'blocked times'
+    __tablename__ = 'blocked_times'
 
     id = db.Column(db.Integer, primary_key=True)
     business_id = db.Column(db.Integer, db.ForeignKey('businesses.id'), nullable=False)

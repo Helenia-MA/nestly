@@ -13,7 +13,8 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    CORS(app, origins=[app.config['FRONTEND_URL']])
+    # CORS(app, origins=[app.config['FRONTEND_URL']])
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     cloudinary.config(
         cloud_name=Config.CLOUDINARY_CLOUD_NAME,
@@ -37,4 +38,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

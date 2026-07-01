@@ -49,7 +49,7 @@ export default function App() {
 
       {/* customer routes */}
       <Route path="/" element={<HomePage />} />
-      <Route path="/categories/:categoryId" element={<CategoryPage />} />
+      <Route path="/category/:categoryId" element={<CategoryPage />} />
       <Route path="/business/:businessId" element={<BusinessProfilePage />} />
 
       {/* protected customer routes */}

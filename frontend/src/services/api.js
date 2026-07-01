@@ -48,6 +48,7 @@ export const categoriesAPI = {
 export const businessesAPI = {
     getAll: (filters) => api.get('/businesses', { params: filters }),
     getOne: (id) => api.get(`/businesses/${id}`),
+    getMyBusinesses: () => api.get('/businesses/my-business'),
     create: (data) => api.post('/businesses', data),
     update: (id, data) => api.put(`/businesses/${id}`, data),
     updateStatus: (id, status) => api.put(`/businesses/${id}/status`, { status }),
@@ -70,6 +71,9 @@ export const businessesAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     deletePhoto: (id, photoId) => api.delete(`/businesses/${id}/photos/${photoId}`),
+    uploadServicePhoto: (id, serviceId, formData) => api.post(`/businesses/${id}/services/${serviceId}/photos`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     deleteServicePhoto: (id, serviceId, photoId) => api.delete(`/businesses/${id}/services/${serviceId}/photos/${photoId}`),
 
     // blocked times

@@ -7,9 +7,9 @@ app = create_app()
 
 categories = [
     # personal services: hairdressing, barber, beauty, manicure/pedicure, fitness training, cleaning&laundry
-    {"name": "Haircut", "group": "Personal Services", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO-PVI5oee9uip4ws93GPqZE5XcNp9ayr4-A&s"},
+    {"name": "Hairdressing", "group": "Personal Services", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO-PVI5oee9uip4ws93GPqZE5XcNp9ayr4-A&s"},
     {"name": "Barber", "group": "Personal Services", "icon": "https://cdn-icons-png.flaticon.com/512/5607/5607344.png"},
-    {"name": "Beauty", "group": "Personal Services", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaQkRJningQ-Y2BpLU81almbLzNz8HdITE2w&s"},
+    {"name": "Makeup", "group": "Personal Services", "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaQkRJningQ-Y2BpLU81almbLzNz8HdITE2w&s"},
     {"name": "Manicure/Pedicure", "group": "Personal Services", "icon": "https://www.shutterstock.com/image-vector/manicure-pedicure-salon-vector-icons-260nw-1006808296.jpg"},
     {"name": "Fitness Training", "group": "Personal Services", "icon": "https://static.thenounproject.com/png/1926483-200.png"},
     {"name": "Cleaning & Laundry", "group": "Personal Services", "icon": "https://thumbs.dreamstime.com/b/black-white-sign-laundry-dry-cleaning-service-hanger-washing-machine-symbol-vector-clothes-80311468.jpg"},

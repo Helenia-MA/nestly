@@ -329,7 +329,7 @@ def get_all_businesses():
         'min_price': request.args.get('min_price'),
         'max_price': request.args.get('max_price'),
         'lat': request.args.get('lat'),
-        'lon': request.args.get('lon'),
+        'lng': request.args.get('lng'),
         'max_distance': request.args.get('max_distance')
     }
     businesses, error = services.get_all_businesses(filters)
@@ -433,6 +433,17 @@ def cancel_booking_by_business(booking_id):
         'message': 'Booking cancelled successfully',
         'booking': booking.to_dict()
     }), 200
+
+# business owner viewing their businesses
+@business_bp.route('/my-business', methods=['GET'])
+@jwt_required()
+def get_my_businesses():
+    user_id = get_jwt_identity()
+    businesses, error = services.get_my_businesses(user_id)
+    if error:
+        return jsonify({'error': error}), 404
+
+    return jsonify({'businesses': [b.to_full_dict() for b in businesses]}), 200
 
 # business owner viewing bookings for their business
 @business_bp.route('/<int:business_id>/bookings', methods=['GET'])

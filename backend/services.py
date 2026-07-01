@@ -1,5 +1,5 @@
 import bcrypt
-from models import BusinessPhoto, ServicePhoto, User, Business, WorkingHours, Service, Category, BlockedTime, Booking
+from models import BusinessPhoto, ServicePhoto, User, Business, WorkingHours, Service, Category, BlockedTime, Booking, Business
 from extensions import db
 from datetime import datetime, time, timedelta
 import cloudinary.uploader
@@ -82,15 +82,15 @@ def login_user(data):
     return user, None
 
 # DISTANCE CALCULATION (for future use in filtering business by distance) - haversine formula
-def haversine(lat1, lon1, lat2, lon2):
+def haversine(lat1, lng1, lat2, lng2):
     R = 6371 # earth's radius
 
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    lat1, lng1, lat2, lng2 = map(radians, [lat1, lng1, lat2, lng2])
 
     dlat = lat2 - lat1
-    dlon = lon2 - lon1
+    dlng = lng2 - lng1
 
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     distance = R * c
 
@@ -236,6 +236,11 @@ def get_working_hours(business_id):
     hours = WorkingHours.query.filter_by(business_id=business_id).order_by(WorkingHours.day_of_week).all()
 
     return hours, None
+
+# getting business for a given business owner
+def get_my_businesses(user_id):
+    businesses = Business.query.filter_by(owner_id=int(user_id)).all()
+    return businesses, None
 
 # SERVICES MANAGEMENT
 # Creating a new service for a business
@@ -558,14 +563,14 @@ def get_all_businesses(filters=None):
 
     businesses = query.order_by(Business.created_at.desc()).all()
 
-    # filtering by distance (if lat and lon are provided)
+    # filtering by distance (if lat and lng are provided)
     customer_lat = filters.get('lat') if filters else None
-    customer_lon = filters.get('lon') if filters else None
+    customer_lng = filters.get('lng') if filters else None
     max_distance = filters.get('max_distance') if filters else None
 
-    if customer_lat and customer_lon:
+    if customer_lat and customer_lng:
         customer_lat = float(customer_lat)
-        customer_lon = float(customer_lon)
+        customer_lng = float(customer_lng)
 
         result = []
         for business in businesses:
@@ -573,7 +578,7 @@ def get_all_businesses(filters=None):
             if business.latitude is None or business.longitude is None:
                 continue
             distance = haversine(
-                customer_lat, customer_lon, business.latitude, business.longitude
+                customer_lat, customer_lng, business.latitude, business.longitude
             )
 
             if max_distance and distance > float(max_distance):

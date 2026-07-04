@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // the base URL for my Flask backend
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:5001/api'
+const BASE_URL = 'https://localhost:5001/api'
 
 // creating axios instance with default configurations
 const api = axios.create({

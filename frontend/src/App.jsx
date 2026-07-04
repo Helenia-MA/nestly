@@ -27,9 +27,9 @@ function ProtectedRoute({children}) {
 }
 
 function BusinessRoute({children}) {
-  const { isAuthenticated, isBusinessOwner } = useAuth()
+  const { isAuthenticated} = useAuth()
   if (!isAuthenticated) return <Navigate to="/login" />
-  if (!isBusinessOwner) return <Navigate to="/" />
+  // if (!isBusinessOwner) return <Navigate to="/" />
   return children
 }
 

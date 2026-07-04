@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { businessesAPI } from '../../services/api'
 import Navbar from '../../components/common/Navbar'
+import RegisterBusinessForm from './RegisterBusinessForm'
 
 // tab imports
 import OverviewTab from './tabs/OverviewTab'
@@ -133,23 +134,7 @@ export default function DashboardPage() {
         return (
             <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh' }}>
                 <Navbar />
-                <div style={{ maxWidth: '600px', margin: '4rem auto', padding: '0 1.25rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '1rem' }}>🏪</div>
-                    <h2 style={{ fontSize: '20px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '8px' }}>
-                        Register your business
-                    </h2>
-                    <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '1.5rem' }}>
-                        You haven't registered a business yet. Get started to accept bookings on Nestly.
-                    </p>
-                    <button
-                        onClick={() => setActiveTab('profile')}
-                        style={{
-                            padding: '10px 24px', backgroundColor: 'var(--color-primary)', color: 'white',
-                            border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer'
-                        }}>
-                        Register business
-                    </button>
-                </div>
+                <RegisterBusinessForm />
             </div>
         )
     }

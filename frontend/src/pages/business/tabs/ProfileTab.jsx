@@ -1,6 +1,7 @@
 // src/pages/business/tabs/ProfileTab.jsx
 import { useState } from 'react'
 import { businessesAPI } from '../../../services/api'
+import WorkingHoursForm from './WorkingHoursForm'
 
 export default function ProfileTab({ business, setBusiness }) {
     const [formData, setFormData] = useState({
@@ -352,6 +353,22 @@ export default function ProfileTab({ business, setBusiness }) {
                         {mapsLoading ? 'Updating...' : 'Update location'}
                     </button>
                 </div>
+            </div>
+
+            {/* working hours */}
+            <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                border: '0.5px solid var(--color-border)',
+                padding: '1rem',
+                marginBottom: '1rem'}}>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '4px' }}>
+                    Working hours
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '1rem' }}>
+                    Set your weekly schedule. Customers will only see available slots within these hours.
+                </div>
+                <WorkingHoursForm business={business} />
             </div>
 
             {/* listing status */}

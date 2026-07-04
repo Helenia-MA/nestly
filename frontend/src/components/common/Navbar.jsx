@@ -33,6 +33,15 @@ export default function NavBar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {isAuthenticated ? (
             <>
+
+                {/* browse as a customer */}
+                <Link to="/" style={{
+                    fontSize: '13px',
+                    color: 'var(--color-muted',
+                    textDecoration: 'none'
+                }}>
+                    Browse
+                </Link>
                 {/* dashboard link for business owners */}
                 {isBusinessOwner && (
                     <Link to="/dashboard" style={{

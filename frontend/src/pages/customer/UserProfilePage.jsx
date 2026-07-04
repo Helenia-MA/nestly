@@ -382,7 +382,7 @@ export default function UserProfilePage() {
                                 <div style={{ flex: 1, fontSize: '12px', color: '#4A9E75', lineHeight: '1.5' }}>
                                     Own a business? Register it on Nestly and start accepting bookings.
                                 </div>
-                                <button style={{
+                                <button onClick={() => navigate('/dashboard')} style={{
                                     fontSize: '12px',
                                     fontWeight: '500',
                                     color: 'white',

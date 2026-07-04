@@ -1,9 +1,10 @@
 // src/pages/business/tabs/ServicesTab.jsx
-import { useState } from 'react'
-import { businessesAPI } from '../../../services/api'
+import { useState, useEffect } from 'react'
+import { businessesAPI, categoriesAPI } from '../../../services/api'
 
 export default function ServicesTab({ business, setBusiness }) {
     const [services, setServices] = useState(business.services || [])
+    const [categories, setCategories] = useState([])
     const [showAddForm, setShowAddForm] = useState(false)
     const [editingService, setEditingService] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -15,8 +16,20 @@ export default function ServicesTab({ business, setBusiness }) {
         price: '',
         duration_minutes: '',
         price_is_negotiable: false,
-        category_id: business.services?.[0]?.category_id || ''
+        category_id: ''
     })
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await categoriesAPI.getAll()
+                setCategories(res.data.categories)
+            } catch (err) {
+                console.error('Failed to load categories', err)
+            }
+        }
+        fetchCategories()
+    }, [])
 
     const resetForm = () => {
         setFormData({
@@ -25,7 +38,7 @@ export default function ServicesTab({ business, setBusiness }) {
             price: '',
             duration_minutes: '',
             price_is_negotiable: false,
-            category_id: business.services?.[0]?.category_id || ''
+            category_id: ''
         })
         setShowAddForm(false)
         setEditingService(null)
@@ -199,6 +212,26 @@ export default function ServicesTab({ business, setBusiness }) {
 
                             <div>
                                 <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                    Category
+                                </label>
+                                <select
+                                    name="category_id"
+                                    value={formData.category_id}
+                                    onChange={handleChange}
+                                    required
+                                    style={inputStyle}
+                                >
+                                    <option value="">Select a category</option>
+                                    {categories.map(cat => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.group} — {cat.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
                                     Description (optional)
                                 </label>
                                 <input
@@ -352,7 +385,7 @@ export default function ServicesTab({ business, setBusiness }) {
                             </div>
 
                             {/* actions */}
-                            <div style={{ display: 'flex', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                 <button
                                     onClick={() => handleToggle(service)}
                                     style={{
@@ -391,32 +424,31 @@ export default function ServicesTab({ business, setBusiness }) {
                                         cursor: 'pointer',
                                         backgroundColor: '#F2F9F5',
                                         color: '#4A9E75'
-                                    }}>
-                                        📷 Photo
+                                    }}
+                                >
+                                    📷 Photo
                                 </label>
                                 <input
                                     type="file"
                                     id={`photo-upload-${service.id}`}
                                     accept="image/*"
-                                    onChange= {async (e) => {
+                                    style={{ display: 'none' }}
+                                    onChange={async (e) => {
                                         const file = e.target.files[0]
                                         if (!file) return
                                         const formData = new FormData()
                                         formData.append('photo', file)
                                         try {
-                                            await businessesAPI.uploadServicePhoto(business.id, service.id, formData)
-
-
-                                            // refreshing services
+                                            await businessesAPI.uploadServicePhoto(
+                                                business.id, service.id, formData
+                                            )
                                             const res = await businessesAPI.getServices(business.id)
                                             setServices(res.data.services)
                                             alert('Photo uploaded successfully')
                                         } catch (err) {
-                                            console.log('upload error', err.response?.data)
-                                            alert('Failed to upload photo' + (err.response?.data?.error || err.message))
+                                            alert('Failed to upload photo')
                                         }
                                     }}
-                                    style={{ display: 'none' }}
                                 />
                                 <button
                                     onClick={() => handleDelete(service.id)}

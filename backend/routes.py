@@ -336,7 +336,7 @@ def get_all_businesses():
     if error:
         return jsonify({'error': error}), 404
     return jsonify({
-        'businesses': [b.to_dict() for b in businesses]
+        'businesses': [b.to_full_dict() for b in businesses]
     }), 200
 
 @booking_bp.route('/availability', methods=['GET'])

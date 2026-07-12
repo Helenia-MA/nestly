@@ -1167,3 +1167,66 @@ def admin_unsuspend_user(user_id, target_user_id):
     db.session.commit()
 
     return target_user, None
+
+# USER PROFILE
+
+def update_profile(user_id, data):
+    user = User.query.get(user_id)
+    if not user:
+        return None, "User not found"
+
+    # check if new email already exists
+    if 'email' in data and data['email'] != user.email:
+        existing = User.query.filter_by(email=data['email']).first()
+        if existing:
+            return None, "An account with this email already exists"
+
+    # check if new phone already exists
+    if 'phone' in data and data['phone'] != user.phone:
+        existing = User.query.filter_by(phone=data['phone']).first()
+        if existing:
+            return None, "An account with this phone already exists"
+
+    allowed_fields = ['name', 'email', 'phone']
+    for field in allowed_fields:
+        if field in data and data[field]:
+            setattr(user, field, data[field])
+
+    db.session.commit()
+    return user, None
+
+
+def change_password(user_id, data):
+    user = User.query.get(user_id)
+    if not user:
+        return None, "User not found"
+
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+
+    if not current_password or not new_password:
+        return None, "Current and new password are required"
+
+    # verify current password
+    if not user.password_hash:
+        return None, "This account uses Google sign in"
+
+    password_matches = bcrypt.checkpw(
+        current_password.encode('utf-8'),
+        user.password_hash.encode('utf-8')
+    )
+
+    if not password_matches:
+        return None, "Current password is incorrect"
+
+    if len(new_password) < 6:
+        return None, "New password must be at least 6 characters"
+
+    # hash and save new password
+    user.password_hash = bcrypt.hashpw(
+        new_password.encode('utf-8'),
+        bcrypt.gensalt()
+    ).decode('utf-8')
+
+    db.session.commit()
+    return user, None

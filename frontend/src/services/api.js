@@ -37,6 +37,8 @@ export const authAPI = {
     login: (data) => api.post('/auth/login', data),
     me: () => api.get('/auth/me'),
     logout: () => api.post('/auth/logout'),
+    updateProfile: (data) => api.put('/auth/profile', data),
+    changePassword: (data) => api.put('/auth/password', data),
 }
 
 // categories
@@ -101,5 +103,8 @@ export const adminAPI = {
     suspendUser: (id) => api.patch(`/admin/users/${id}/suspend`),
     unsuspendUser: (id) => api.patch(`/admin/users/${id}/unsuspend`)
 }
+
+// User profile
+
 
 export default api

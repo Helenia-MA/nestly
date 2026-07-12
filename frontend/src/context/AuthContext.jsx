@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     if (token) {
       authAPI.me()
         .then(response => {
-          setUser(response.data.User)
+          setUser(response.data.user)
         })
         .catch(() => {
           // token invalid or expired

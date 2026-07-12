@@ -59,7 +59,7 @@ def get_current_user():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    return jsonify({'User': user.to_dict()}), 200
+    return jsonify({'user': user.to_dict()}), 200
 
 @ auth_bp.route('/logout', methods=['POST'])
 @ jwt_required()
@@ -598,4 +598,37 @@ def admin_update_business_status(business_id):
     return jsonify({
         'message': f'Business status updated to {new_status}',
         'business': business.to_dict()
+    }), 200
+
+# USER PROFILE
+@auth_bp.route('/profile', methods=['PUT'])
+@jwt_required()
+def update_profile():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    user, error = services.update_profile(user_id, data)
+
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'message': 'Profile updated successfully',
+        'user': user.to_dict()
+    }), 200
+
+
+@auth_bp.route('/password', methods=['PUT'])
+@jwt_required()
+def change_password():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    user, error = services.change_password(user_id, data)
+
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'message': 'Password changed successfully'
     }), 200

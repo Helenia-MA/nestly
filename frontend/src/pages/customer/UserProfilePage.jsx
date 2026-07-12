@@ -3,10 +3,353 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/common/Navbar'
 import { useAuth } from '../../context/AuthContext'
-import { bookingsAPI } from '../../services/api'
+import { bookingsAPI, authAPI } from '../../services/api'
+
+function PersonalInfoForm({ user, setUser }) {
+    const [formData, setFormData] = useState({
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || ''
+    })
+    const [loading, setLoading] = useState(false)
+    const [success, setSuccess] = useState(false)
+    const [error, setError] = useState(null)
+    const [editing, setEditing] = useState(false)
+
+    const handleSave = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+        setError(null)
+        try {
+            const res = await authAPI.updateProfile(formData)
+            setUser(res.data.user)
+            setSuccess(true)
+            setEditing(false)
+            setTimeout(() => setSuccess(false), 3000)
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to update profile')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const inputStyle = {
+        width: '100%',
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '0.5px solid var(--color-border)',
+        fontSize: '13px',
+        outline: 'none',
+        backgroundColor: 'var(--color-bg)',
+        boxSizing: 'border-box'
+    }
+
+    return (
+        <div style={{
+            backgroundColor: 'white',
+            borderBottom: '0.5px solid var(--color-border)',
+            padding: '1rem 1.25rem'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)' }}>
+                    Personal information
+                </div>
+                {!editing && (
+                    <button
+                        onClick={() => setEditing(true)}
+                        style={{
+                            fontSize: '12px',
+                            color: 'var(--color-primary)',
+                            background: 'none',
+                            border: '0.5px solid #C8E8D8',
+                            borderRadius: '20px',
+                            padding: '4px 12px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Edit
+                    </button>
+                )}
+            </div>
+
+            {success && (
+                <div style={{
+                    padding: '8px 12px',
+                    backgroundColor: '#F2F9F5',
+                    color: '#4A9E75',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    marginBottom: '0.75rem'
+                }}>
+                    ✓ Profile updated successfully
+                </div>
+            )}
+
+            {!editing ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {[
+                        { label: 'Name', value: user?.name },
+                        { label: 'Email', value: user?.email || '—' },
+                        { label: 'Phone', value: user?.phone || '—' },
+                    ].map(item => (
+                        <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                            <span style={{ color: 'var(--color-muted)' }}>{item.label}</span>
+                            <span style={{ color: 'var(--color-text)' }}>{item.value}</span>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <form onSubmit={handleSave}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {error && (
+                            <div style={{
+                                padding: '8px 12px',
+                                backgroundColor: '#FEF0F4',
+                                color: '#9E4060',
+                                borderRadius: '8px',
+                                fontSize: '12px'
+                            }}>
+                                {error}
+                            </div>
+                        )}
+                        <div>
+                            <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                Name
+                            </label>
+                            <input
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                required
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                Phone
+                            </label>
+                            <input
+                                type="tel"
+                                value={formData.phone}
+                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                style={{
+                                    flex: 1,
+                                    padding: '9px',
+                                    backgroundColor: 'var(--color-primary)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '13px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {loading ? 'Saving...' : 'Save changes'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEditing(false)
+                                    setError(null)
+                                }}
+                                style={{
+                                    padding: '9px 16px',
+                                    backgroundColor: 'var(--color-bg)',
+                                    color: 'var(--color-muted)',
+                                    border: '0.5px solid var(--color-border)',
+                                    borderRadius: '8px',
+                                    fontSize: '13px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            )}
+        </div>
+    )
+}
+
+function ChangePasswordForm() {
+    const [formData, setFormData] = useState({
+        current_password: '',
+        new_password: '',
+        confirm_password: ''
+    })
+    const [loading, setLoading] = useState(false)
+    const [success, setSuccess] = useState(false)
+    const [error, setError] = useState(null)
+    const [open, setOpen] = useState(false)
+    const [show, setShow] = useState({ current: false, new: false, confirm: false })
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (formData.new_password !== formData.confirm_password) {
+            setError('New passwords do not match')
+            return
+        }
+        setLoading(true)
+        setError(null)
+        try {
+            await authAPI.changePassword({
+                current_password: formData.current_password,
+                new_password: formData.new_password
+            })
+            setSuccess(true)
+            setOpen(false)
+            setFormData({ current_password: '', new_password: '', confirm_password: '' })
+            setTimeout(() => setSuccess(false), 3000)
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to change password')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const inputStyle = {
+        width: '100%',
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '0.5px solid var(--color-border)',
+        fontSize: '13px',
+        outline: 'none',
+        backgroundColor: 'var(--color-bg)',
+        boxSizing: 'border-box'
+    }
+
+    const passwordField = (key, label, field) => (
+        <div>
+            <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                {label}
+            </label>
+            <div style={{ position: 'relative' }}>
+                <input
+                    type={show[key] ? 'text' : 'password'}
+                    value={formData[field]}
+                    onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                    required
+                    style={{ ...inputStyle, paddingRight: '52px' }}
+                />
+                <button
+                    type="button"
+                    onClick={() => setShow({ ...show, [key]: !show[key] })}
+                    style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        fontSize: '11px',
+                        color: 'var(--color-primary)',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {show[key] ? 'Hide' : 'Show'}
+                </button>
+            </div>
+        </div>
+    )
+
+    return (
+        <div style={{
+            backgroundColor: 'white',
+            borderBottom: '0.5px solid var(--color-border)',
+            padding: '1rem 1.25rem'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)' }}>
+                    Change password
+                </div>
+                <button
+                    onClick={() => setOpen(!open)}
+                    style={{
+                        fontSize: '12px',
+                        color: 'var(--color-primary)',
+                        background: 'none',
+                        border: '0.5px solid #C8E8D8',
+                        borderRadius: '20px',
+                        padding: '4px 12px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {open ? 'Cancel' : 'Change'}
+                </button>
+            </div>
+
+            {success && (
+                <div style={{
+                    padding: '8px 12px',
+                    backgroundColor: '#F2F9F5',
+                    color: '#4A9E75',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    marginTop: '0.75rem'
+                }}>
+                    ✓ Password changed successfully
+                </div>
+            )}
+
+            {open && (
+                <form onSubmit={handleSubmit} style={{ marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {error && (
+                            <div style={{
+                                padding: '8px 12px',
+                                backgroundColor: '#FEF0F4',
+                                color: '#9E4060',
+                                borderRadius: '8px',
+                                fontSize: '12px'
+                            }}>
+                                {error}
+                            </div>
+                        )}
+                        {passwordField('current', 'Current password', 'current_password')}
+                        {passwordField('new', 'New password', 'new_password')}
+                        {passwordField('confirm', 'Confirm new password', 'confirm_password')}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            style={{
+                                padding: '9px',
+                                backgroundColor: 'var(--color-primary)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '13px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {loading ? 'Updating...' : 'Update password'}
+                        </button>
+                    </div>
+                </form>
+            )}
+        </div>
+    )
+}
 
 export default function UserProfilePage() {
-    const { user, logout } = useAuth()
+    const { user, setUser, logout } = useAuth()
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState('bookings')
     const [bookings, setBookings] = useState([])
@@ -344,27 +687,8 @@ export default function UserProfilePage() {
                 {/* account tab */}
                 {activeTab === 'account' && (
                     <div>
-                        {/* account items */}
-                        {[
-                            { label: 'Personal information', icon: '👤' },
-                            { label: 'Change password', icon: '🔒' },
-                            { label: 'Notifications', icon: '🔔' },
-                        ].map(item => (
-                            <div key={item.label} style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '13px 1.25rem',
-                                borderBottom: '0.5px solid var(--color-border)',
-                                backgroundColor: 'white',
-                                cursor: 'pointer'
-                            }}>
-                                <span style={{ marginRight: '12px', fontSize: '16px' }}>{item.icon}</span>
-                                <span style={{ fontSize: '13px', color: 'var(--color-text)', flex: 1 }}>
-                                    {item.label}
-                                </span>
-                                <span style={{ color: 'var(--color-muted)', fontSize: '16px' }}>›</span>
-                            </div>
-                        ))}
+                        <PersonalInfoForm user={user} setUser={setUser} />
+                        <ChangePasswordForm />
 
                         {/* register business banner */}
                         {!user?.is_business_owner && (
@@ -382,17 +706,20 @@ export default function UserProfilePage() {
                                 <div style={{ flex: 1, fontSize: '12px', color: '#4A9E75', lineHeight: '1.5' }}>
                                     Own a business? Register it on Nestly and start accepting bookings.
                                 </div>
-                                <button onClick={() => navigate('/dashboard')} style={{
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    color: 'white',
-                                    backgroundColor: 'var(--color-primary)',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    padding: '7px 12px',
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap'
-                                }}>
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    style={{
+                                        fontSize: '12px',
+                                        fontWeight: '500',
+                                        color: 'white',
+                                        backgroundColor: 'var(--color-primary)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        padding: '7px 12px',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
                                     Register
                                 </button>
                             </div>

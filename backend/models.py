@@ -73,6 +73,11 @@ class Business(db.Model):
         return {
             'id': self.id,
             'owner_id': self.owner_id,
+            'owner' : {
+                'name': self.owner.name,
+                'email': self.owner.email,
+                'phone': self.owner.phone
+            } if self.owner else None,
             'name': self.name,
             'description': self.description,
             'location': self.location,

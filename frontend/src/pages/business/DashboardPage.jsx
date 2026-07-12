@@ -122,6 +122,22 @@ export default function DashboardPage() {
                                 </span>
                             </div>
                         ))}
+                        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                            <button
+                                onClick={() => setBusiness('new')}
+                                style={{
+                                    fontSize: '13px',
+                                    color: 'var(--color-primary)',
+                                    background: 'none',
+                                    border: '0.5px solid #C8E8D8',
+                                    borderRadius: '8px',
+                                    padding: '8px 16px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                + Register a new business
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -130,7 +146,7 @@ export default function DashboardPage() {
 
 
     // if user is not a business owner, or no business yet, we'll show the setup prompt
-    if (!business) {
+    if (!business || business == 'new') {
         return (
             <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh' }}>
                 <Navbar />

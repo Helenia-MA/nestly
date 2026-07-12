@@ -704,7 +704,10 @@ export default function UserProfilePage() {
                             }}>
                                 <span style={{ fontSize: '22px' }}>🏪</span>
                                 <div style={{ flex: 1, fontSize: '12px', color: '#4A9E75', lineHeight: '1.5' }}>
-                                    Own a business? Register it on Nestly and start accepting bookings.
+                                    {user?.is_business_owner
+                                    ? 'Want to register and manage another business separately on Nestly?'
+                                    : 'Own a business? Register it on Nestly and start accepting bookings.'
+                                    }
                                 </div>
                                 <button
                                     onClick={() => navigate('/dashboard')}
@@ -720,7 +723,7 @@ export default function UserProfilePage() {
                                         whiteSpace: 'nowrap'
                                     }}
                                 >
-                                    Register
+                                    {user?.is_business_owner ? 'Add Business' : 'Register'}
                                 </button>
                             </div>
                         )}

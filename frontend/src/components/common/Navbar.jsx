@@ -49,7 +49,7 @@ export default function NavBar() {
                         color: 'var(--color-muted)',
                         textDecoration: 'none'
                     }}>
-                        Dashboard
+                        Business
                     </Link>
                 )}
 

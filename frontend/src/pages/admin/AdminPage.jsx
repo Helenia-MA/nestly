@@ -323,6 +323,13 @@ export default function AdminPage() {
                                                     <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                                                         {biz.location || 'No location'} · joined {biz.created_at?.slice(0, 10)}
                                                     </div>
+
+                                                    {biz.owner && (
+                                                        <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px' }}>
+                                                            👤 Owner: {biz.owner.name} · {biz.owner.email || biz.owner.phone}
+                                                        </div>
+                                                    )}
+
                                                 </div>
 
                                                 {/* actions */}

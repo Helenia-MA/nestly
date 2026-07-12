@@ -278,5 +278,9 @@ class Booking(db.Model):
             'business_name': self.business.name,
             'service_name': self.service.name,
             'service_price': float(self.service.price),
-            'duration_minutes': self.service.duration_minutes
+            'duration_minutes': self.service.duration_minutes,
+
+            'customer_name': self.customer.name,
+            'customer_phone': self.customer.phone,
+            'customer_email': self.customer.email
         }

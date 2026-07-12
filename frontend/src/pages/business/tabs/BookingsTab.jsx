@@ -170,6 +170,14 @@ export default function BookingsTab( {business}) {
                                     <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-text)' }}>
                                         {booking.service_name}
                                     </div>
+                                    <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px' }}>
+                                        👤 {booking.customer_name}
+                                        {booking.customer_phone
+                                            ? ` · 📞 ${booking.customer_phone}`
+                                            : booking.customer_email
+                                                ? ` · ✉️ ${booking.customer_email}`
+                                                : ''}
+                                    </div>
                                     <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                                         {booking.duration_minutes}min
                                     </div>

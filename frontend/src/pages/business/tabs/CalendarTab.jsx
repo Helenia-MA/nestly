@@ -150,6 +150,8 @@ export default function CalendarTab({ business }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {[
                                 { label: 'Service', value: selectedBooking.service_name },
+                                { label: 'Customer', value: selectedBooking.customer_name },
+                                { label: 'Contact', value: selectedBooking.customer_phone || selectedBooking.customer_email || 'N/A' },
                                 { label: 'Date', value: selectedBooking.start_time?.slice(0, 10) },
                                 { label: 'Time', value: `${selectedBooking.start_time?.slice(11, 16)} - ${selectedBooking.end_time?.slice(11, 16)}` },
                                 { label: 'Duration', value: `${selectedBooking.duration_minutes} mins` },

@@ -4,6 +4,8 @@ from extensions import db
 from datetime import datetime, time, timedelta
 import cloudinary.uploader
 from math import radians, sin, cos, sqrt, atan2
+import re
+import requests as http_requests
 
 # USER AUTHENTICATION
 def signup_user(data):
@@ -82,6 +84,35 @@ def login_user(data):
     return user, None
 
 # DISTANCE CALCULATION (for future use in filtering business by distance) - haversine formula
+def parse_google_maps_url(url):
+    if 'maps.app.goo.gl' in url or 'goo.gl' in url:
+        try:
+            response = http_requests.get(
+                url,
+                allow_redirects=True,
+                timeout=10,
+                headers={'User-Agent': 'Mozilla/5.0'}
+            )
+            url = response.url
+        except Exception as e:
+            return None, None, f"Could not resolve URL: {str(e)}"
+
+    patterns = [
+        r'!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)',   # actual place pin (most accurate)
+        r'@(-?\d+\.?\d*),(-?\d+\.?\d*)',        # map viewport center
+        r'q=(-?\d+\.?\d*),(-?\d+\.?\d*)',
+        r'll=(-?\d+\.?\d*),(-?\d+\.?\d*)',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            lat = float(match.group(1))
+            lng = float(match.group(2))
+            return lat, lng, None
+
+    return None, None, "Could not extract coordinates from this URL"
+
 def haversine(lat1, lng1, lat2, lng2):
     R = 6371 # earth's radius
 
@@ -144,10 +175,17 @@ def update_business(business_id, user_id, data):
         return None, "You don't have permission to edit this business"
 
     # only allowing certain fields to be updated
-    allowed_fields = ['name', 'description', 'location', 'phone', 'instagram', 'tiktok', 'website', 'capacity', 'latitude', 'longitude']
+    allowed_fields = ['name', 'description', 'location', 'phone', 'instagram', 'tiktok', 'website', 'capacity', 'latitude', 'longitude', 'cover_photo']
     for field in allowed_fields:
         if field in data:
             setattr(business, field, data[field])
+
+    if 'maps_url' in data and data['maps_url']:
+        lat, lng, error = parse_google_maps_url(data['maps_url'])
+        if error:
+            return None, error
+        business.latitude = lat
+        business.longitude = lng
 
     db.session.commit()
     return business, None
@@ -426,6 +464,18 @@ def upload_service_photo(business_id, service_id, user_id, file):
     except Exception as e:
         return None, f"Photo upload failed: {str(e)}"
 
+    # A service keeps a single cover photo for now — remove any existing ones
+    # (best-effort delete from Cloudinary) before storing the new one.
+    existing_photos = ServicePhoto.query.filter_by(service_id=service_id).all()
+    for old in existing_photos:
+        public_id = _cloudinary_public_id(old.photo_url)
+        if public_id:
+            try:
+                cloudinary.uploader.destroy(public_id)
+            except Exception:
+                pass  # don't fail the upload if cleanup of the old asset fails
+        db.session.delete(old)
+
     photo = ServicePhoto(
         service_id=service_id,
         photo_url=photo_url
@@ -435,6 +485,17 @@ def upload_service_photo(business_id, service_id, user_id, file):
     db.session.commit()
 
     return photo, None
+
+def _cloudinary_public_id(photo_url):
+    """Derive a Cloudinary public_id from a secure_url, or None if it can't be parsed."""
+    if not photo_url or '/upload/' not in photo_url:
+        return None
+    tail = photo_url.split('/upload/', 1)[1]  # e.g. 'v123/nestly/services/abc.jpg'
+    parts = tail.split('/')
+    if parts and parts[0].startswith('v') and parts[0][1:].isdigit():
+        parts = parts[1:]  # drop the version segment
+    path = '/'.join(parts)
+    return path.rsplit('.', 1)[0] or None  # strip file extension
 
 def delete_service_photo(business_id, service_id, photo_id, user_id):
     business = Business.query.get(business_id)
@@ -539,27 +600,27 @@ def get_all_businesses(filters=None):
                 Business.services.any(Service.category_id == int(filters['category_id']))
             )
 
-    # filtering by business name
-    if filters.get('search'):
-        search_term = f"%{filters['search']}%"
-        query = query.filter(
-            Business.name.ilike(search_term)
-        )
-
-    # filtering by price range
-    if filters.get('min_price'):
-        query = query.filter(
-            Business.services.any(
-                Service.price >= float(filters['min_price'])
+        # filtering by business name
+        if filters.get('search'):
+            search_term = f"%{filters['search']}%"
+            query = query.filter(
+                Business.name.ilike(search_term)
             )
-        )
 
-    if filters.get('max_price'):
-        query = query.filter(
-            Business.services.any(
-                Service.price <= float(filters['max_price'])
+        # filtering by price range
+        if filters.get('min_price'):
+            query = query.filter(
+                Business.services.any(
+                    Service.price >= float(filters['min_price'])
+                )
             )
-        )
+
+        if filters.get('max_price'):
+            query = query.filter(
+                Business.services.any(
+                    Service.price <= float(filters['max_price'])
+                )
+            )
 
     businesses = query.order_by(Business.created_at.desc()).all()
 

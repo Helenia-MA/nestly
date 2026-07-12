@@ -439,13 +439,19 @@ export default function ServicesTab({ business, setBusiness }) {
                                         const formData = new FormData()
                                         formData.append('photo', file)
                                         try {
-                                            await businessesAPI.uploadServicePhoto(
+                                            const res = await businessesAPI.uploadServicePhoto(
                                                 business.id, service.id, formData
                                             )
-                                            const res = await businessesAPI.getServices(business.id)
-                                            setServices(res.data.services)
+                                            console.log('service photo upload response:', res.data)
+                                            const updatedServices = services.map(s =>
+                                                s.id === service.id
+                                                    ? { ...s, photos: [res.data.photo] }
+                                                    : s
+                                            )
+                                            setServices(updatedServices)
                                             alert('Photo uploaded successfully')
                                         } catch (err) {
+                                            console.log('upload error:', err.response?.data || err.message)
                                             alert('Failed to upload photo')
                                         }
                                     }}

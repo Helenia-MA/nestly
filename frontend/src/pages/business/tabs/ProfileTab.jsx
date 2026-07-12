@@ -57,6 +57,12 @@ export default function ProfileTab({ business, setBusiness }) {
     }
 
     const handleStatusChange = async (newStatus) => {
+        if (newStatus === 'published') {
+            if (!window.confirm('Are you ready to go live? Your business will be visible to customers.')) return
+        }
+        if (newStatus === 'paused') {
+            if (!window.confirm('Pause your listing? Customers won\'t be able to book until you republish.')) return
+        }
         try {
             const res = await businessesAPI.updateStatus(business.id, newStatus)
             setBusiness(res.data.business)
@@ -71,11 +77,50 @@ export default function ProfileTab({ business, setBusiness }) {
         const formData = new FormData()
         formData.append('photo', file)
         try {
+            // upload to cloudinary
             const res = await businessesAPI.uploadPhoto(business.id, formData)
-            setBusiness({ ...business, cover_photo: res.data.photo.photo_url })
+            const photoUrl = res.data.photo.photo_url
+            const photoId = res.data.photo.id
+
+            // set as cover photo on business
+            await businessesAPI.update(business.id, { cover_photo: photoUrl })
+
+            // remove from gallery since it's a cover photo not a gallery photo
+            await businessesAPI.deletePhoto(business.id, photoId)
+
+            setBusiness({ ...business, cover_photo: photoUrl })
             alert('Cover photo updated!')
         } catch (err) {
             alert('Failed to upload cover photo')
+        }
+    }
+
+    const handleGalleryUpload = async (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        const formData = new FormData()
+        formData.append('photo', file)
+        try {
+            const res = await businessesAPI.uploadPhoto(business.id, formData)
+            setBusiness({
+                ...business,
+                photos: [...(business.photos || []), res.data.photo]
+            })
+        } catch (err) {
+            alert('Failed to upload photo')
+        }
+    }
+
+    const handleDeletePhoto = async (photoId) => {
+        if (!window.confirm('Delete this photo?')) return
+        try {
+            await businessesAPI.deletePhoto(business.id, photoId)
+            setBusiness({
+                ...business,
+                photos: business.photos.filter(p => p.id !== photoId)
+            })
+        } catch (err) {
+            alert('Failed to delete photo')
         }
     }
 
@@ -113,14 +158,14 @@ export default function ProfileTab({ business, setBusiness }) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
-                        width: '80px',
-                        height: '60px',
+                        width: '120px',
+                        height: '80px',
                         borderRadius: '8px',
                         backgroundColor: '#E8D8F0',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '24px',
+                        fontSize: '28px',
                         overflow: 'hidden',
                         flexShrink: 0
                     }}>
@@ -129,21 +174,100 @@ export default function ProfileTab({ business, setBusiness }) {
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             : '🏪'}
                     </div>
+                    <div>
+                        <label style={{
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            border: '0.5px solid #C8E8D8',
+                            backgroundColor: '#F2F9F5',
+                            color: '#4A9E75',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'inline-block'
+                        }}>
+                            Upload cover photo
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleCoverPhoto}
+                                style={{ display: 'none' }}
+                            />
+                        </label>
+                        <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '6px' }}>
+                            This appears as the main banner on your profile
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* gallery photos */}
+            <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                border: '0.5px solid var(--color-border)',
+                padding: '1rem',
+                marginBottom: '1rem'
+            }}>
+                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '0.75rem' }}>
+                    Gallery — Our work
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {business.photos?.map(photo => (
+                        <div key={photo.id} style={{ position: 'relative' }}>
+                            <img
+                                src={photo.photo_url}
+                                alt="Business"
+                                style={{
+                                    width: '80px',
+                                    height: '70px',
+                                    borderRadius: '8px',
+                                    objectFit: 'cover'
+                                }}
+                            />
+                            <button
+                                onClick={() => handleDeletePhoto(photo.id)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '-6px',
+                                    right: '-6px',
+                                    width: '18px',
+                                    height: '18px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#E05050',
+                                    color: 'white',
+                                    border: 'none',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+
+                    {/* add photo button */}
                     <label style={{
-                        padding: '8px 16px',
+                        width: '80px',
+                        height: '70px',
                         borderRadius: '8px',
-                        border: '0.5px solid #C8E8D8',
-                        backgroundColor: '#F2F9F5',
-                        color: '#4A9E75',
-                        fontSize: '12px',
-                        cursor: 'pointer'
+                        border: '0.5px dashed var(--color-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px',
+                        cursor: 'pointer',
+                        backgroundColor: 'var(--color-bg)',
+                        color: 'var(--color-muted)'
                     }}>
-                        Upload photo
+                        +
                         <input
                             type="file"
                             accept="image/*"
-                            onChange={handleCoverPhoto}
                             style={{ display: 'none' }}
+                            onChange={handleGalleryUpload}
                         />
                     </label>
                 </div>
@@ -274,7 +398,9 @@ export default function ProfileTab({ business, setBusiness }) {
                         </div>
 
                         <div>
-                            <label style={labelStyle}>Capacity (number of staff serving simultaneously)</label>
+                            <label style={labelStyle}>
+                                Capacity (number of staff serving simultaneously)
+                            </label>
                             <input
                                 name="capacity"
                                 type="number"
@@ -317,14 +443,17 @@ export default function ProfileTab({ business, setBusiness }) {
                     Set location from Google Maps
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '0.75rem' }}>
-                    Paste your Google Maps link to enable distance filtering for customers
+                    Copy the URL from your browser address bar on Google Maps
                 </div>
 
                 {business.latitude && (
                     <div style={{ fontSize: '12px', color: '#4A9E75', marginBottom: '0.75rem' }}>
                         ✓ Location set: {business.latitude?.toFixed(4)}, {business.longitude?.toFixed(4)}
-                        {' · '}<a href={business.maps_link} target="_blank" rel="noopener noreferrer"
-                            style={{ color: 'var(--color-primary)' }}>View on Maps</a>
+                        {' · '}
+                        <a href={business.maps_link} target="_blank" rel="noopener noreferrer"
+                            style={{ color: 'var(--color-primary)' }}>
+                            View on Maps
+                        </a>
                     </div>
                 )}
 
@@ -333,7 +462,7 @@ export default function ProfileTab({ business, setBusiness }) {
                         type="text"
                         value={mapsUrl}
                         onChange={(e) => setMapsUrl(e.target.value)}
-                        placeholder="https://maps.app.goo.gl/..."
+                        placeholder="https://www.google.com/maps/place/..."
                         style={{ ...inputStyle, flex: 1 }}
                     />
                     <button
@@ -347,11 +476,64 @@ export default function ProfileTab({ business, setBusiness }) {
                             borderRadius: '8px',
                             fontSize: '12px',
                             cursor: 'pointer',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            opacity: mapsLoading || !mapsUrl ? 0.6 : 1
                         }}
                     >
                         {mapsLoading ? 'Updating...' : 'Update location'}
                     </button>
+                </div>
+
+                {/* manual coordinates fallback */}
+                <div style={{ marginTop: '0.75rem' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginBottom: '0.5rem' }}>
+                        Or enter coordinates manually (Google Maps → right click → "What's here?")
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                            type="number"
+                            placeholder="Latitude e.g. -1.2921"
+                            step="any"
+                            id="manual-lat"
+                            style={{ ...inputStyle, flex: 1 }}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Longitude e.g. 36.8219"
+                            step="any"
+                            id="manual-lng"
+                            style={{ ...inputStyle, flex: 1 }}
+                        />
+                        <button
+                            onClick={async () => {
+                                const lat = document.getElementById('manual-lat').value
+                                const lng = document.getElementById('manual-lng').value
+                                if (!lat || !lng) return alert('Enter both coordinates')
+                                try {
+                                    const res = await businessesAPI.update(business.id, {
+                                        latitude: parseFloat(lat),
+                                        longitude: parseFloat(lng)
+                                    })
+                                    setBusiness(res.data.business)
+                                    alert('Location updated!')
+                                } catch (err) {
+                                    alert('Failed to update location')
+                                }
+                            }}
+                            style={{
+                                padding: '8px 12px',
+                                backgroundColor: 'var(--color-primary)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            Save
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -361,7 +543,8 @@ export default function ProfileTab({ business, setBusiness }) {
                 borderRadius: '12px',
                 border: '0.5px solid var(--color-border)',
                 padding: '1rem',
-                marginBottom: '1rem'}}>
+                marginBottom: '1rem'
+            }}>
                 <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '4px' }}>
                     Working hours
                 </div>
@@ -380,6 +563,13 @@ export default function ProfileTab({ business, setBusiness }) {
             }}>
                 <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '0.75rem' }}>
                     Listing status
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '0.75rem' }}>
+                    {business.status === 'published'
+                        ? '● Your business is live and visible to customers'
+                        : business.status === 'paused'
+                            ? '● Your listing is paused — customers cannot book'
+                            : '● Your listing is in draft — not visible to customers'}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     {['draft', 'published', 'paused'].map(status => (

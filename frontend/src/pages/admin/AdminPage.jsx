@@ -2,13 +2,345 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/common/Navbar'
-import { adminAPI } from '../../services/api'
+import { adminAPI, categoriesAPI } from '../../services/api'
 
 const TABS = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'businesses', label: 'Businesses', icon: '🏪' },
     { id: 'users', label: 'Users', icon: '👥' },
+    { id: 'categories', label: 'Categories', icon: '🏷️' },
 ]
+
+const GROUPS = ['Personal Services', 'Home & Property']
+
+function CategoriesTab({ categories, setCategories }) {
+    const [showForm, setShowForm] = useState(false)
+    const [editingCategory, setEditingCategory] = useState(null)
+    const [formData, setFormData] = useState({ name: '', group: '', icon: '' })
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+
+    const resetForm = () => {
+        setFormData({ name: '', group: '', icon: '' })
+        setShowForm(false)
+        setEditingCategory(null)
+        setError(null)
+    }
+
+    // resolve the actual group name — use the custom value when "other" is selected
+    const buildPayload = () => {
+        const { customGroup, ...rest } = formData
+        return {
+            ...rest,
+            group: formData.group === 'other' ? (customGroup || '').trim() : formData.group
+        }
+    }
+
+    const handleAdd = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+        setError(null)
+        try {
+            const res = await adminAPI.createCategory(buildPayload())
+            setCategories([...categories, res.data.category])
+            resetForm()
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to create category')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleEdit = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+        setError(null)
+        try {
+            const res = await adminAPI.updateCategory(editingCategory.id, buildPayload())
+            setCategories(categories.map(c =>
+                c.id === editingCategory.id ? res.data.category : c
+            ))
+            resetForm()
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to update category')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleDelete = async (categoryId) => {
+        if (!window.confirm('Delete this category? This cannot be undone.')) return
+        try {
+            await adminAPI.deleteCategory(categoryId)
+            setCategories(categories.filter(c => c.id !== categoryId))
+        } catch (err) {
+            alert(err.response?.data?.error || 'Failed to delete category')
+        }
+    }
+
+    const startEdit = (category) => {
+        setEditingCategory(category)
+        setFormData({
+            name: category.name,
+            group: category.group,
+            icon: category.icon || ''
+        })
+        setShowForm(true)
+    }
+
+    // group categories by group
+    const grouped = categories.reduce((acc, cat) => {
+        if (!acc[cat.group]) acc[cat.group] = []
+        acc[cat.group].push(cat)
+        return acc
+    }, {})
+
+    const inputStyle = {
+        width: '100%',
+        padding: '8px 12px',
+        borderRadius: '8px',
+        border: '0.5px solid var(--color-border)',
+        fontSize: '13px',
+        outline: 'none',
+        backgroundColor: 'var(--color-bg)',
+        boxSizing: 'border-box'
+    }
+
+    return (
+        <div>
+            {/* add button */}
+            {!showForm && (
+                <button
+                    onClick={() => setShowForm(true)}
+                    style={{
+                        width: '100%',
+                        padding: '11px',
+                        backgroundColor: '#F2F9F5',
+                        color: '#4A9E75',
+                        border: '0.5px dashed var(--color-primary)',
+                        borderRadius: '10px',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                    }}
+                >
+                    + Add new category
+                </button>
+            )}
+
+            {/* add/edit form */}
+            {showForm && (
+                <div style={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    border: '0.5px solid var(--color-border)',
+                    padding: '1rem',
+                    marginBottom: '1rem'
+                }}>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '1rem' }}>
+                        {editingCategory ? 'Edit category' : 'Add new category'}
+                    </div>
+
+                    {error && (
+                        <div style={{
+                            padding: '8px 12px',
+                            backgroundColor: '#FEF0F4',
+                            color: '#9E4060',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            marginBottom: '0.75rem'
+                        }}>
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={editingCategory ? handleEdit : handleAdd}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div>
+                                <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                    Category name
+                                </label>
+                                <input
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    placeholder="e.g. Photography"
+                                    required
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                    Group
+                                </label>
+                                <select
+                                    value={formData.group}
+                                    onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+                                    required
+                                    style={inputStyle}
+                                >
+                                    <option value="">Select a group</option>
+                                    {GROUPS.map(g => (
+                                        <option key={g} value={g}>{g}</option>
+                                    ))}
+                                    <option value="other">Other (new group)</option>
+                                </select>
+                            </div>
+
+                            {formData.group === 'other' && (
+                                <div>
+                                    <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                        New group name
+                                    </label>
+                                    <input
+                                        value={formData.customGroup || ''}
+                                        onChange={(e) => setFormData({ ...formData, customGroup: e.target.value })}
+                                        placeholder="e.g. Creative Services"
+                                        required
+                                        style={inputStyle}
+                                    />
+                                </div>
+                            )}
+
+                            <div>
+                                <label style={{ fontSize: '12px', color: 'var(--color-muted)', display: 'block', marginBottom: '4px' }}>
+                                    Icon URL (optional)
+                                </label>
+                                <input
+                                    value={formData.icon}
+                                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                    placeholder="https://..."
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    style={{
+                                        flex: 1,
+                                        padding: '9px',
+                                        backgroundColor: 'var(--color-primary)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {loading ? 'Saving...' : editingCategory ? 'Save changes' : 'Add category'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    style={{
+                                        padding: '9px 16px',
+                                        backgroundColor: 'var(--color-bg)',
+                                        color: 'var(--color-muted)',
+                                        border: '0.5px solid var(--color-border)',
+                                        borderRadius: '8px',
+                                        fontSize: '13px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* categories grouped */}
+            {Object.entries(grouped).map(([group, cats]) => (
+                <div key={group} style={{ marginBottom: '1.5rem' }}>
+                    <div style={{
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        color: 'var(--color-muted)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        marginBottom: '0.75rem'
+                    }}>
+                        {group} ({cats.length})
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {cats.map(cat => (
+                            <div key={cat.id} style={{
+                                backgroundColor: 'white',
+                                borderRadius: '10px',
+                                border: '0.5px solid var(--color-border)',
+                                padding: '10px 12px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px'
+                            }}>
+                                {/* icon */}
+                                <div style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#F0EBF7',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    overflow: 'hidden',
+                                    flexShrink: 0
+                                }}>
+                                    {cat.icon
+                                        ? <img src={cat.icon} alt={cat.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        : '📋'}
+                                </div>
+
+                                <div style={{ flex: 1, fontSize: '13px', fontWeight: '500', color: 'var(--color-text)' }}>
+                                    {cat.name}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button
+                                        onClick={() => startEdit(cat)}
+                                        style={{
+                                            padding: '4px 10px',
+                                            borderRadius: '6px',
+                                            border: '0.5px solid var(--color-border)',
+                                            fontSize: '11px',
+                                            cursor: 'pointer',
+                                            backgroundColor: 'white',
+                                            color: 'var(--color-text)'
+                                        }}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(cat.id)}
+                                        style={{
+                                            padding: '4px 10px',
+                                            borderRadius: '6px',
+                                            border: '0.5px solid #F2C8D4',
+                                            fontSize: '11px',
+                                            cursor: 'pointer',
+                                            backgroundColor: '#FEF0F4',
+                                            color: '#9E4060'
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+}
 
 export default function AdminPage() {
     const navigate = useNavigate()
@@ -19,6 +351,7 @@ export default function AdminPage() {
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [statusFilter, setStatusFilter] = useState('')
+    const [categories, setCategories] = useState([])
 
     useEffect(() => {
         fetchData()
@@ -36,6 +369,9 @@ export default function AdminPage() {
             } else if (activeTab === 'users') {
                 const res = await adminAPI.getUsers()
                 setUsers(res.data.users)
+            } else if (activeTab === 'categories') {
+                const res = await categoriesAPI.getAll()
+                setCategories(res.data.categories)
             }
         } catch (err) {
             console.error('Failed to load admin data', err)
@@ -518,6 +854,14 @@ export default function AdminPage() {
                                     ))}
                                 </div>
                             </div>
+                        )}
+
+                        {/* categories tab */}
+                        {activeTab === 'categories' && (
+                            <CategoriesTab
+                                categories ={categories}
+                                setCategories={setCategories}
+                            />
                         )}
                     </>
                 )}

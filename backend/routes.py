@@ -600,6 +600,50 @@ def admin_update_business_status(business_id):
         'business': business.to_dict()
     }), 200
 
+@admin_bp.route('/categories', methods=['POST'])
+@jwt_required()
+def admin_create_category():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    category, error = services.admin_create_category(user_id, data)
+
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'message': 'category created successfully',
+        'category': category.to_dict()
+    }), 201
+
+@admin_bp.route('/categories/<int:category_id>', methods=['PUT'])
+@jwt_required()
+def admin_update_category(category_id):
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    category, error = services.admin_update_category(user_id, category_id, data)
+
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'message': 'Category updated successfully',
+        'category': category.to_dict()
+    }), 200
+
+@admin_bp.route('/categories/<int:category_id>', methods=['DELETE'])
+@jwt_required()
+def admin_delete_category(category_id):
+    user_id = get_jwt_identity()
+
+    success, error = services.admin_delete_category(user_id, category_id)
+
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({'message': 'Category deleted successfully'}), 200
+
 # USER PROFILE
 @auth_bp.route('/profile', methods=['PUT'])
 @jwt_required()

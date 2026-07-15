@@ -101,7 +101,10 @@ export const adminAPI = {
     verifyBusiness: (id) => api.patch(`/admin/businesses/${id}/verify`),
     updateBusinessStatus: (id, status) => api.put(`/admin/businesses/${id}/status`, { status }),
     suspendUser: (id) => api.patch(`/admin/users/${id}/suspend`),
-    unsuspendUser: (id) => api.patch(`/admin/users/${id}/unsuspend`)
+    unsuspendUser: (id) => api.patch(`/admin/users/${id}/unsuspend`),
+    createCategory: (data) => api.post('/admin/categories', data),
+    updateCategory: (id, data) => api.put(`/admin/categories/${id}`, data),
+    deleteCategory: (id) => api.delete(`/admin/categories/${id}`)
 }
 
 // User profile

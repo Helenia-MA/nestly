@@ -1168,6 +1168,65 @@ def admin_unsuspend_user(user_id, target_user_id):
 
     return target_user, None
 
+# creating categories
+def admin_create_category(user_id, data):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    name = data.get('name')
+    group = data.get('group')
+
+    if not name or not group:
+        return None, "Name and group required"
+
+    existing = Category.query.filter(Category.name.ilike(name)).first()
+    if existing:
+        return None, "A category with this name already exists"
+
+    category = Category(name=name, group=group, icon=data.get('icon'))
+    db.session.add(category)
+    db.session.commit()
+
+    return category, None
+
+
+def admin_update_category(user_id, category_id, data):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    category = Category.query.get(category_id)
+    if not category:
+        return None, "Category not found"
+
+    allowed_fields = ['name', 'group', 'icon']
+    for field in allowed_fields:
+        if field in data:
+            setattr(category, field, data[field])
+
+    db.session.commit()
+    return category, None
+
+def admin_delete_category(user_id, category_id):
+    _, error = check_admin(user_id)
+    if error:
+        return None, error
+
+    category = Category.query.get(category_id)
+    if not category:
+        return None, "Category not found"
+
+    # check if any services use this category
+    from models import Service
+    services_using = Service.query.filter_by(category_id=category_id).count()
+    if services_using > 0:
+        return None, f"Cannot delete — {services_using} service(s) use this category"
+
+    db.session.delete(category)
+    db.session.commit()
+    return True, None
+
 # USER PROFILE
 
 def update_profile(user_id, data):

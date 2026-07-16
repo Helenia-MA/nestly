@@ -554,6 +554,95 @@ export default function ProfileTab({ business, setBusiness }) {
                 <WorkingHoursForm business={business} />
             </div>
 
+            <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                border: '0.5px solid var(--color-border)',
+                padding: '1rem',
+                marginBottom: '1rem'
+            }}>
+                <div style={{fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '4px'}}>
+                    Verification document
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginBottom: '0.75rem'}}>
+                    Upload a business registration certificate, license or any official document to get verified by Nestly.
+                </div>
+
+                {business.verification_document ? (
+                    <div style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#F2F9F5',
+                        border: '0.5px solid #C8E8D8',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#4A9E75',
+                        marginBottom: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <span>✅ Document uploaded</span>
+                        <a
+                            href={business.verification_document}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            style={{ color: 'var(--color-primary)', fontSize: '11px' }}
+                            >
+                                View document
+                            </a>
+                    </div>
+                ) : (
+                    <div style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#FEF0F4',
+                        border: '0.5px solid #F2C8D4',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#9E4060',
+                        marginBottom: '0.75rem'
+                    }}>
+                            No document uploaded yet
+                    </div>
+                )}
+
+                <label style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '0.5px solid #C8E8D8',
+                    backgroundColor: '#F2F9F5',
+                    color: '#4A9E75',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'inline-block'
+                }}>
+                    {business.verification_document ? 'Replace document' : 'Upload document'}
+                    <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                            const file = e.target.files[0]
+                            if (!file) return
+                            const formData = new FormData()
+                            formData.append('document', file)
+                            try {
+                                const res = await businessesAPI.uploadVerificationDocument(
+                                    business.id, formData
+                                )
+                                setBusiness(res.data.business)
+                                alert('Document uploaded successfully!')
+                            } catch (err) {
+                                alert(err.response?.data?.error || 'Failed to upload document')
+                            }
+                        }}
+                    />
+                </label>
+                <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '6px' }}>
+                    Accepted formats: PDF, JPG, PNG
+                </div>
+            </div>
+
             {/* listing status */}
             <div style={{
                 backgroundColor: 'white',

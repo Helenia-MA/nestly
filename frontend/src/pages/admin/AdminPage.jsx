@@ -665,6 +665,9 @@ export default function AdminPage() {
                                                             👤 Owner: {biz.owner.name} · {biz.owner.email || biz.owner.phone}
                                                         </div>
                                                     )}
+                                                    <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '4px' }}>
+                                                        📅 {biz.booking_count} booking{biz.booking_count !== 1 ? 's' : ''} total
+                                                    </div>
 
                                                 </div>
 

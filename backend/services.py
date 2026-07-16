@@ -582,6 +582,34 @@ def get_blocked_times(business_id):
     blocked_times = BlockedTime.query.filter_by(business_id=business_id).all()
     return blocked_times, None
 
+# verification documents
+def upload_verification_document(business_id, user_id, file):
+    business = Business.query.get(business_id)
+    if not business:
+        return None, "Business not found"
+
+    if business.owner_id != int(user_id):
+        return None, "You don't have permission to upload documents for this business"
+
+    if not file:
+        return None, "No file provided"
+
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file,
+            folder='nestly/verification',
+            resource_type='auto'  # allows PDFs too
+        )
+        document_url = upload_result['secure_url']
+    except Exception as e:
+        return None, f"Upload failed: {str(e)}"
+
+    business.verification_document = document_url
+    db.session.commit()
+
+    return business, None
+
+
 # CUSTOMER BROWSING LOGIC
 
 def get_categories():

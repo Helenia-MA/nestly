@@ -81,7 +81,14 @@ export const businessesAPI = {
     // blocked times
     getBlockedTimes: (id) => api.get(`/businesses/${id}/blocked-times`),
     createBlockedTime: (id, data) => api.post(`/businesses/${id}/blocked-times`, data),
-    deleteBlockedTime: (id, blockedTimeId) => api.delete(`/businesses/${id}/blocked-times/${blockedTimeId}`)
+    deleteBlockedTime: (id, blockedTimeId) => api.delete(`/businesses/${id}/blocked-times/${blockedTimeId}`),
+
+    // verification documents
+    uploadVerificationDocument: (id, formData) => api.post(
+        `/businesses/${id}/verification-document`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+    ),
 }
 
 // Bookings

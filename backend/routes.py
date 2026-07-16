@@ -308,6 +308,24 @@ def delete_blocked_time(business_id, blocked_time_id):
         'message': 'Blocked time deleted successfully'
     }), 200
 
+# business verification documents
+@business_bp.route('/<int:business_id>/verification-document', methods=['POST'])
+@jwt_required()
+def upload_verification_document(business_id):
+    user_id = get_jwt_identity()
+    file = request.files.get('document')
+
+    business, error = services.upload_verification_document(
+        business_id, user_id, file
+    )
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'message': 'Document uploaded successfully',
+        'business': business.to_dict()
+    }), 200
+
 # CUSTOMER BROWSING
 # getting all categories
 @category_bp.route('', methods=['GET'])

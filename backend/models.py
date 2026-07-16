@@ -66,6 +66,7 @@ class Business(db.Model):
     status = db.Column(db.String(20), default='draft') # once done setting up will change to 'published' can be 'suspended' too based on reviews
     is_verified = db.Column(db.Boolean, default=False) # after admin verification
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    verification_document = db.Column(db.String(255), nullable=True)
 
     owner = db.relationship('User', backref='businesses')
 
@@ -78,6 +79,7 @@ class Business(db.Model):
                 'email': self.owner.email,
                 'phone': self.owner.phone
             } if self.owner else None,
+            'booking_count': len(self.bookings),
             'name': self.name,
             'description': self.description,
             'location': self.location,
@@ -94,7 +96,8 @@ class Business(db.Model):
             'status': self.status,
             'is_verified': self.is_verified,
             'created_at': self.created_at.isoformat(),
-            'distance': getattr(self, 'distance', None)
+            'distance': getattr(self, 'distance', None),
+            'verification_document': self.verification_document,
         }
 
     def to_full_dict(self):
@@ -121,6 +124,7 @@ class Business(db.Model):
             'photos': [photo.to_dict() for photo in self.photos],
             'working_hours': [h.to_dict() for h in self.working_hours],
             'services': [s.to_full_dict() for s in self.services if s.is_active],
+            'verification_document': self.verification_document,
         }
 
 # separating this since a business can have multiple photos, and we want to keep track of them separately

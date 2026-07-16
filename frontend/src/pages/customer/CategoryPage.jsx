@@ -291,6 +291,7 @@ export default function CategoryPage() {
 
                                     <div style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '4px 0', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                         {biz.location && <span>📍 {biz.location}</span>}
+                                        {biz.avg_rating && <span style={{ color: '#F5A623' }}>★ {biz.avg_rating} ({biz.review_count})</span>}
                                         {biz.distance !== null && biz.distance !== undefined && (
                                             <span>🗺️ {biz.distance}km away</span>
                                         )}

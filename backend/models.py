@@ -71,6 +71,11 @@ class Business(db.Model):
     owner = db.relationship('User', backref='businesses')
 
     def to_dict(self):
+        reviews = [r.to_dict() for r in self.reviews]
+        avg_rating = round(
+            sum(r['rating'] for r in reviews)/ len(reviews), 1
+        ) if reviews else None
+
         return {
             'id': self.id,
             'owner_id': self.owner_id,
@@ -98,9 +103,18 @@ class Business(db.Model):
             'created_at': self.created_at.isoformat(),
             'distance': getattr(self, 'distance', None),
             'verification_document': self.verification_document,
+
+            'reviews': reviews,
+            'avg_rating': avg_rating,
+            'review_count': len(reviews)
         }
 
     def to_full_dict(self):
+        reviews = [r.to_dict() for r in self.reviews]
+        avg_rating = round(
+            sum(r['rating'] for r in reviews)/ len(reviews), 1
+        ) if reviews else None
+
         return {
             'id': self.id,
             'owner_id': self.owner_id,
@@ -125,6 +139,10 @@ class Business(db.Model):
             'working_hours': [h.to_dict() for h in self.working_hours],
             'services': [s.to_full_dict() for s in self.services if s.is_active],
             'verification_document': self.verification_document,
+
+            'reviews': reviews,
+            'avg_rating': avg_rating,
+            'review_count': len(reviews)
         }
 
 # separating this since a business can have multiple photos, and we want to keep track of them separately
@@ -292,4 +310,32 @@ class Booking(db.Model):
             'customer_name': self.customer.name,
             'customer_phone': self.customer.phone,
             'customer_email': self.customer.email
+        }
+
+# REVIEWS
+class Review(db.Model):
+    __tablename__ = 'reviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    business_id = db.Column(db.Integer, db.ForeignKey('businesses.id'), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # 1-5
+    comment = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    business = db.relationship('Business', backref='reviews')
+    customer = db.relationship('User', backref='reviews')
+    booking = db.relationship('Booking', backref='review', uselist=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'business_id': self.business_id,
+            'customer_id': self.customer_id,
+            'booking_id': self.booking_id,
+            'rating': self.rating,
+            'comment': self.comment,
+            'created_at': self.created_at.isoformat(),
+            'customer_name': self.customer.name,
         }

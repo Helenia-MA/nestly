@@ -5,6 +5,130 @@ import Navbar from '../../components/common/Navbar'
 import { businessesAPI, bookingsAPI } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 
+// review form component
+function LeaveReviewForm({ businessId, onReviewSubmitted }) {
+    const [rating, setRating] = useState(0)
+    const [hoveredRating, setHoveredRating] = useState(0)
+    const [comment, setComment] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [submitted, setSubmitted] = useState(false)
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (!rating) return setError('Please select a rating')
+        setLoading(true)
+        setError(null)
+        try {
+            const res = await businessesAPI.createReview(businessId, { rating, comment })
+            setSubmitted(true)
+            onReviewSubmitted(res.data.review)
+        } catch (err) {
+            console.log('Review error:', err.response?.data)
+            setError(err.response?.data?.error || 'Failed to submit review')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    if (submitted) {
+        return (
+            <div style={{
+                padding: '10px 12px',
+                backgroundColor: '#F2F9F5',
+                borderRadius: '8px',
+                fontSize: '13px',
+                color: '#4A9E75',
+                marginBottom: '1rem'
+            }}>
+                ✓ Thank you for your review!
+            </div>
+        )
+    }
+
+    return (
+        <div style={{
+            backgroundColor: 'var(--color-bg)',
+            borderRadius: '10px',
+            padding: '12px',
+            marginBottom: '1rem'
+        }}>
+            <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '8px' }}>
+                Leave a review
+            </div>
+
+            {error && (
+                <div style={{
+                    padding: '8px 12px',
+                    backgroundColor: '#FEF0F4',
+                    color: '#9E4060',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    marginBottom: '8px'
+                }}>
+                    {error}
+                </div>
+            )}
+
+            {/* star rating */}
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                {[1, 2, 3, 4, 5].map(star => (
+                    <span
+                        key={star}
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoveredRating(star)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        style={{
+                            fontSize: '28px',
+                            cursor: 'pointer',
+                            color: star <= (hoveredRating || rating) ? '#F5A623' : '#E0E0E0',
+                            transition: 'color 0.1s'
+                        }}
+                    >
+                        ★
+                    </span>
+                ))}
+            </div>
+
+            <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Share your experience (optional)"
+                rows={2}
+                style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '0.5px solid var(--color-border)',
+                    fontSize: '13px',
+                    outline: 'none',
+                    resize: 'none',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box',
+                    marginBottom: '8px'
+                }}
+            />
+
+            <button
+                onClick={handleSubmit}
+                disabled={loading || !rating}
+                style={{
+                    padding: '8px 20px',
+                    backgroundColor: rating ? 'var(--color-primary)' : 'var(--color-border)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    cursor: rating ? 'pointer' : 'not-allowed',
+                    fontWeight: '500'
+                }}
+            >
+                {loading ? 'Submitting...' : 'Submit review'}
+            </button>
+        </div>
+    )
+}
+
 export default function BusinessProfilePage() {
     const { businessId } = useParams()
     const navigate = useNavigate()
@@ -561,6 +685,85 @@ export default function BusinessProfilePage() {
                         )}
                     </div>
                 )}
+
+                {/* reviews section */}
+                <div style={{
+                    backgroundColor: 'white',
+                    padding: '1rem 1.25rem',
+                    borderBottom: '0.5px solid var(--color-border)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                        <h2 style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)' }}>
+                            Reviews
+                        </h2>
+                        {business.avg_rating && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '18px', color: '#F5A623' }}>★</span>
+                                <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)' }}>
+                                    {business.avg_rating}
+                                </span>
+                                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                                    ({business.review_count} review{business.review_count !== 1 ? 's' : ''})
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* leave a review */}
+                    {isAuthenticated && <LeaveReviewForm businessId={business.id} onReviewSubmitted={(review) => {
+                        setBusiness({
+                            ...business,
+                            reviews: [review, ...(business.reviews || [])],
+                            review_count: (business.review_count || 0) + 1,
+                            avg_rating: business.reviews?.length
+                                ? ((business.avg_rating * business.review_count + review.rating) / (business.review_count + 1)).toFixed(1)
+                                : review.rating
+                        })
+                    }} />}
+
+                    {/* reviews list */}
+                    {business.reviews?.length === 0 ? (
+                        <div style={{
+                            textAlign: 'center',
+                            color: 'var(--color-muted)',
+                            fontSize: '13px',
+                            padding: '1rem 0'
+                        }}>
+                            No reviews yet — be the first to review!
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '1rem' }}>
+                            {business.reviews?.map(review => (
+                                <div key={review.id} style={{
+                                    borderBottom: '0.5px solid var(--color-border)',
+                                    paddingBottom: '12px'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-text)' }}>
+                                            {review.customer_name}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '2px' }}>
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <span key={star} style={{
+                                                    fontSize: '14px',
+                                                    color: star <= review.rating ? '#F5A623' : '#E0E0E0'
+                                                }}>★</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                                        {review.created_at?.slice(0, 10)}
+                                    </div>
+                                    {review.comment && (
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text)', marginTop: '6px', lineHeight: '1.5' }}>
+                                            {review.comment}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
                 {/* back button */}
                 <div style={{ padding: '1rem 1.25rem' }}>

@@ -396,6 +396,14 @@ export default function HomePage() {
                                                 <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
                                                     {biz.location}
                                                 </div>
+
+                                                {/* rating */}
+                                                {biz.avg_rating && (
+                                                    <div style={{ fontSize: '11px', color: '#F5A623', marginTop: '4px' }}>
+                                                        {'★'.repeat(Math.round(biz.avg_rating))} {biz.avg_rating} ({biz.review_count})
+                                                    </div>
+                                                )}
+
                                                 {biz.is_verified && (
                                                     <span style={{
                                                         fontSize: '10px',

@@ -89,6 +89,10 @@ export const businessesAPI = {
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
     ),
+
+    //Reviews
+    getReviews: (id) => api.get(`/businesses/${id}/reviews`),
+    createReview: (id, data) => api.post(`/businesses/${id}/reviews`, data),
 }
 
 // Bookings

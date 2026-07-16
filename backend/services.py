@@ -1,5 +1,5 @@
 import bcrypt
-from models import BusinessPhoto, ServicePhoto, User, Business, WorkingHours, Service, Category, BlockedTime, Booking, Business
+from models import BusinessPhoto, ServicePhoto, User, Business, WorkingHours, Service, Category, BlockedTime, Booking, Business, Review
 from extensions import db
 from datetime import datetime, time, timedelta
 import cloudinary.uploader
@@ -1317,3 +1317,69 @@ def change_password(user_id, data):
 
     db.session.commit()
     return user, None
+
+# REVIEWS
+def create_review(customer_id, business_id, data):
+    # checking if business exists
+    business = Business.query.get(business_id)
+    if not business:
+        return None, "Business not found"
+
+    # find a completed booking that hasn't been reviewed yet
+    reviewed_booking_ids = [
+        r.booking_id for r in Review.query.filter_by(
+            customer_id=int(customer_id),
+            business_id=business_id
+        ).all()
+    ]
+
+    # checking if customer has a completed booking with this business
+    completed_booking = Booking.query.filter_by(
+        customer_id=int(customer_id),
+        business_id=business_id,
+        status='confirmed'
+    ).filter(
+        Booking.end_time < datetime.now(),
+        ~Booking.id.in_(reviewed_booking_ids) if reviewed_booking_ids else True
+    ).first()
+
+    if not completed_booking:
+        return None, "You can only review businesses you have visited"
+
+    # checking if the customer already reviewed this booking
+    existing = Review.query.filter_by(
+        customer_id=int(customer_id),
+        booking_id=completed_booking.id
+    ).first()
+
+    if existing:
+        return None, "You have already reviewed this booking"
+
+    rating = data.get('rating')
+    if not rating or not (1 <= int(rating) <= 5):
+        return None, "Rating must be between 1 and 5"
+
+    review = Review(
+        business_id=business_id,
+        customer_id=int(customer_id),
+        booking_id=completed_booking.id,
+        rating=int(rating),
+        comment=data.get('comment')
+    )
+
+    db.session.add(review)
+    db.session.commit()
+
+    return review, None
+
+
+def get_reviews(business_id):
+    business = Business.query.get(business_id)
+    if not business:
+        return None, "Business not found"
+
+    reviews = Review.query.filter_by(
+        business_id=business_id
+    ).order_by(Review.created_at.desc()).all()
+
+    return reviews, None

@@ -694,3 +694,30 @@ def change_password():
     return jsonify({
         'message': 'Password changed successfully'
     }), 200
+
+# REVIEWS
+@business_bp.route('/<int:business_id>/reviews', methods=['POST'])
+@jwt_required()
+def create_review(business_id):
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    review, error = services.create_review(user_id, business_id, data)
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'message': 'Review submitted successfully',
+        'review': review.to_dict()
+    }), 201
+
+
+@business_bp.route('/<int:business_id>/reviews', methods=['GET'])
+def get_reviews(business_id):
+    reviews, error = services.get_reviews(business_id)
+    if error:
+        return jsonify({'error': error}), 404
+
+    return jsonify({
+        'reviews': [r.to_dict() for r in reviews]
+    }), 200

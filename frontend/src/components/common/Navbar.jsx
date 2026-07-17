@@ -1,8 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth} from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function NavBar() {
-    const { user, isAuthenticated, isBusinessOwner, isAdmin, logout } = useAuth();
+    const { user, setUser, isAuthenticated, isBusinessOwner, isAdmin, logout } = useAuth();
     const navigate = useNavigate();
 
     return (
@@ -19,92 +19,96 @@ export default function NavBar() {
             zIndex: 100
         }}>
 
-        {/* logo */}
-        <Link to="/" style={{
-            fontSize: '20px',
-            fontWeight: '500',
-            color: 'var(--color-primary)',
-            textDecoration: 'none'
-        }}>
-            Nestly
-        </Link>
+            {/* logo */}
+            <Link to="/" style={{
+                fontSize: '20px',
+                fontWeight: '500',
+                color: 'var(--color-primary)',
+                textDecoration: 'none'
+            }}>
+                Nestly
+            </Link>
 
-        {/* right side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {isAuthenticated ? (
-            <>
+            {/* right side */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                {isAuthenticated ? (
+                    <>
 
-                {/* browse as a customer */}
-                <Link to="/" style={{
-                    fontSize: '13px',
-                    color: 'var(--color-muted',
-                    textDecoration: 'none'
-                }}>
-                    Browse
-                </Link>
-                {/* dashboard link for business owners */}
-                {isBusinessOwner && (
-                    <Link to="/dashboard" style={{
-                        fontSize: '13px',
-                        color: 'var(--color-muted)',
-                        textDecoration: 'none'
-                    }}>
-                        Business
-                    </Link>
+                        {/* browse as a customer */}
+                        <Link to="/" style={{
+                            fontSize: '13px',
+                            color: 'var(--color-muted',
+                            textDecoration: 'none'
+                        }}>
+                            Browse
+                        </Link>
+                        {/* dashboard link for business owners */}
+                        {isBusinessOwner && (
+                            <Link to="/dashboard" style={{
+                                fontSize: '13px',
+                                color: 'var(--color-muted)',
+                                textDecoration: 'none'
+                            }}>
+                                Business
+                            </Link>
+                        )}
+
+                        {/* admin link */}
+                        {isAdmin && (
+                            <Link to="/admin" style={{
+                                fontSize: '13px',
+                                color: 'var(--color-muted)',
+                                textDecoration: 'none'
+                            }}>
+                                Admin
+                            </Link>
+                        )}
+
+                        <Link to="/profile" style={{ textDecoration: 'none' }}>
+                            <div style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                backgroundColor: 'var(--color-accent)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                color: '#9E4060',
+                                cursor: 'pointer',
+                                overflow: 'hidden'
+                            }}>
+                                {user?.profile_photo
+                                    ? <img src={user.profile_photo} alt={user.name}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    : user?.name?.charAt(0).toUpperCase()
+                                }
+                            </div>
+                        </Link>
+                    </>
+                ) : (
+                    <>
+                        <Link to="/login" style={{
+                            fontSize: '13px',
+                            color: 'var(--color-muted)',
+                            textDecoration: 'none'
+                        }}>
+                            Log in
+                        </Link>
+                        <Link to="/signup" style={{
+                            fontSize: '13px',
+                            color: 'white',
+                            backgroundColor: 'var(--color-primary)',
+                            padding: '6px 14px',
+                            borderRadius: '8px',
+                            textDecoration: 'none'
+                        }}>
+                            Sign up
+                        </Link>
+                    </>
                 )}
-
-                {/* admin link */}
-                {isAdmin && (
-                    <Link to="/admin" style={{
-                        fontSize: '13px',
-                        color: 'var(--color-muted)',
-                        textDecoration: 'none'
-                    }}>
-                        Admin
-                    </Link>
-                )}
-
-                {/* profile */}
-                <Link to="/profile" style={{ textDecoration: 'none' }}>
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--color-accent)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '13px',
-                        fontWeight: '500',
-                        color: '#9E4060',
-                        cursor: 'pointer'
-                    }}>
-                        {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                </Link>
-            </>
-            ) : (
-            <>
-                <Link to="/login" style={{
-                    fontSize: '13px',
-                    color: 'var(--color-muted)',
-                    textDecoration: 'none'
-                }}>
-                    Log in
-                </Link>
-                <Link to="/signup" style={{
-                    fontSize: '13px',
-                    color: 'white',
-                    backgroundColor: 'var(--color-primary)',
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    textDecoration: 'none'
-                }}>
-                    Sign up
-                </Link>
-            </>
-            )}
-        </div>
-    </nav>
-  )
+            </div>
+        </nav>
+    )
 }

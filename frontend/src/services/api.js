@@ -39,6 +39,9 @@ export const authAPI = {
     logout: () => api.post('/auth/logout'),
     updateProfile: (data) => api.put('/auth/profile', data),
     changePassword: (data) => api.put('/auth/password', data),
+    uploadProfilePhoto: (formData) => api.post('/auth/profile-photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
 }
 
 // categories

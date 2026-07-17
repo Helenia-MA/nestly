@@ -61,6 +61,22 @@ def get_current_user():
 
     return jsonify({'user': user.to_dict()}), 200
 
+# profile photo
+@auth_bp.route('/profile-photo', methods=['POST'])
+@jwt_required()
+def upload_profile_photo():
+    user_id = get_jwt_identity()
+    file = request.files.get('photo')
+
+    user, error = services.upload_profile_photo(user_id, file)
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'message': 'Profile photo updated successfully',
+        'user': user.to_dict()
+    }), 200
+
 @ auth_bp.route('/logout', methods=['POST'])
 @ jwt_required()
 def logout():

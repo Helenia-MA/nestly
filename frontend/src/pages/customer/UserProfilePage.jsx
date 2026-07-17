@@ -501,27 +501,54 @@ export default function UserProfilePage() {
                     gap: '1rem',
                     borderBottom: '0.5px solid var(--color-border)'
                 }}>
-                    <div style={{
-                        width: '54px',
-                        height: '54px',
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--color-accent)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '20px',
-                        fontWeight: '500',
-                        color: '#9E4060',
-                        flexShrink: 0
-                    }}>
-                        {user?.name?.charAt(0).toUpperCase()}
-                    </div>
+                    <label style={{ cursor: 'pointer', flexShrink: 0 }}>
+                        <div style={{
+                            width: '54px',
+                            height: '54px',
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--color-accent)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px',
+                            fontWeight: '500',
+                            color: '#9E4060',
+                            overflow: 'hidden',
+                            position: 'relative'
+                        }}>
+                            {user?.profile_photo
+                                ? <img src={user.profile_photo} alt={user.name}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                : user?.name?.charAt(0).toUpperCase()
+                            }
+                        </div>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={async (e) => {
+                                const file = e.target.files[0]
+                                if (!file) return
+                                const formData = new FormData()
+                                formData.append('photo', file)
+                                try {
+                                    const res = await authAPI.uploadProfilePhoto(formData)
+                                    setUser(res.data.user)
+                                } catch (err) {
+                                    alert('Failed to upload photo')
+                                }
+                            }}
+                        />
+                    </label>
                     <div>
                         <div style={{ fontSize: '16px', fontWeight: '500', color: 'var(--color-text)' }}>
                             {user?.name}
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
                             {user?.email || user?.phone}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                            Tap photo to change
                         </div>
                     </div>
                 </div>

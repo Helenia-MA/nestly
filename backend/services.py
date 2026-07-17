@@ -1256,6 +1256,30 @@ def admin_delete_category(user_id, category_id):
     return True, None
 
 # USER PROFILE
+def upload_profile_photo(user_id, file):
+    user = User.query.get(user_id)
+    if not user:
+        return None, "User not found"
+
+    if not file:
+        return None, "No file provided"
+
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file,
+            folder='nestly/profiles',
+            transformation=[
+                {'width': 200, 'height': 200, 'crop': 'fill', 'gravity': 'face'}
+            ]
+        )
+        photo_url = upload_result['secure_url']
+    except Exception as e:
+        return None, f"Upload failed: {str(e)}"
+
+    user.profile_photo = photo_url
+    db.session.commit()
+
+    return user, None
 
 def update_profile(user_id, data):
     user = User.query.get(user_id)

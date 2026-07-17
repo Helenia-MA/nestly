@@ -463,6 +463,20 @@ def get_my_businesses():
 
     return jsonify({'businesses': [b.to_full_dict() for b in businesses]}), 200
 
+# get favourties
+@business_bp.route('/favourites', methods=['GET'])
+@jwt_required()
+def get_favourites():
+    user_id = get_jwt_identity()
+
+    favourites, error = services.get_favourites(user_id)
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify({
+        'favourites': [f.to_dict() for f in favourites]
+    }), 200
+
 # business owner viewing bookings for their business
 @business_bp.route('/<int:business_id>/bookings', methods=['GET'])
 @jwt_required()
@@ -721,3 +735,15 @@ def get_reviews(business_id):
     return jsonify({
         'reviews': [r.to_dict() for r in reviews]
     }), 200
+
+# FAVOURITES
+@business_bp.route('/<int:business_id>/favourite', methods=['POST'])
+@jwt_required()
+def toggle_favourite(business_id):
+    user_id = get_jwt_identity()
+
+    result, error = services.toggle_favourite(user_id, business_id)
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify(result), 200

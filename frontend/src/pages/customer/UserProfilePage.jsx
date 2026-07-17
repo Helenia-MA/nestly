@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/common/Navbar'
 import { useAuth } from '../../context/AuthContext'
-import { bookingsAPI, authAPI } from '../../services/api'
+import { bookingsAPI, authAPI, businessesAPI} from '../../services/api'
 
 function PersonalInfoForm({ user, setUser }) {
     const [formData, setFormData] = useState({
@@ -348,6 +348,99 @@ function ChangePasswordForm() {
     )
 }
 
+function FavouritesTab() {
+    const [favourites, setFavourites] = useState([])
+    const [loading, setLoading] = useState(true)
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        const fetchFavourites = async () => {
+            try {
+                const res = await businessesAPI.getFavourites()
+                setFavourites(res.data.favourites)
+            } catch (err) {
+                console.error('Failed to load favourites', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchFavourites()
+    }, [])
+
+    if (loading) return (
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-muted)' }}>
+            Loading...
+        </div>
+    )
+
+    if (favourites.length === 0) return (
+        <div style={{ padding: '2rem 1.25rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '32px', marginBottom: '0.75rem' }}>🤍</div>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '4px' }}>
+                No favourites yet
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
+                Tap the heart on any business to save it here
+            </div>
+        </div>
+    )
+
+    return (
+        <div style={{ padding: '1rem 1.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {favourites.map(fav => (
+                    <div
+                        key={fav.id}
+                        onClick={() => navigate(`/business/${fav.business_id}`)}
+                        style={{
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            border: '0.5px solid var(--color-border)',
+                            padding: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                        }}
+                    >
+                        <div style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '10px',
+                            backgroundColor: '#F0EBF7',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px',
+                            flexShrink: 0,
+                            overflow: 'hidden'
+                        }}>
+                            {fav.business?.cover_photo
+                                ? <img src={fav.business.cover_photo} alt={fav.business.name}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                : '🏪'}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)' }}>
+                                {fav.business?.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                                {fav.business?.location}
+                            </div>
+                            {fav.business?.avg_rating && (
+                                <div style={{ fontSize: '11px', color: '#F5A623', marginTop: '2px' }}>
+                                    {'★'.repeat(Math.round(fav.business.avg_rating))} {fav.business.avg_rating}
+                                </div>
+                            )}
+                        </div>
+                        <span style={{ fontSize: '18px', color: '#E05050' }}>♥</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 export default function UserProfilePage() {
     const { user, setUser, logout } = useAuth()
     const navigate = useNavigate()
@@ -672,17 +765,7 @@ export default function UserProfilePage() {
                 )}
 
                 {/* favourites tab */}
-                {activeTab === 'favourites' && (
-                    <div style={{ padding: '2rem 1.25rem', textAlign: 'center' }}>
-                        <div style={{ fontSize: '32px', marginBottom: '0.75rem' }}>🤍</div>
-                        <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text)', marginBottom: '4px' }}>
-                            No favourites yet
-                        </div>
-                        <div style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-                            Tap the heart on any business to save it here
-                        </div>
-                    </div>
-                )}
+                {activeTab === 'favourites' && <FavouritesTab />}
 
                 {/* account tab */}
                 {activeTab === 'account' && (

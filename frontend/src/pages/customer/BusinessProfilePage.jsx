@@ -146,11 +146,16 @@ export default function BusinessProfilePage() {
     const [bookingError, setBookingError] = useState(null)
     const [activePhoto, setActivePhoto] = useState(null)
 
+    const [isFavourite, setIsFavourite] = useState(false)
+
     useEffect(() => {
         const fetchBusiness = async () => {
             try {
                 const res = await businessesAPI.getOne(businessId)
                 setBusiness(res.data.business)
+                const favRes = await businessesAPI.getFavourites()
+                const isFav = favRes.data.favourites.some(f => f.business_id === parseInt(businessId))
+                setIsFavourite(isFav)
             } catch (err) {
                 console.error('Failed to load business', err)
             } finally {
@@ -323,6 +328,32 @@ export default function BusinessProfilePage() {
                         <h1 style={{ fontSize: '20px', fontWeight: '500', color: 'var(--color-text)', flex: 1 }}>
                             {business.name}
                         </h1>
+
+                        {/* heart button */}
+                        {isAuthenticated && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const res = await businessesAPI.toggleFavourite(business.id)
+                                        setIsFavourite(res.data.is_favourite)
+                                    } catch (err) {
+                                        console.error('Failed to toggle favourite', err)
+                                    }
+                                }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '22px',
+                                    cursor: 'pointer',
+                                    color: isFavourite ? '#E05050' : '#E0E0E0',
+                                    flexShrink: 0,
+                                    padding: '0'
+                                }}
+                            >
+                                {isFavourite ? '♥' : '♡'}
+                            </button>
+                        )}
+
                         {business.is_verified && (
                             <span style={{
                                 fontSize: '11px',

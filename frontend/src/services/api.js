@@ -93,6 +93,11 @@ export const businessesAPI = {
     //Reviews
     getReviews: (id) => api.get(`/businesses/${id}/reviews`),
     createReview: (id, data) => api.post(`/businesses/${id}/reviews`, data),
+
+    // Favourites
+    // add to businessesAPI
+    toggleFavourite: (id) => api.post(`/businesses/${id}/favourite`),
+    getFavourites: () => api.get('/businesses/favourites'),
 }
 
 // Bookings

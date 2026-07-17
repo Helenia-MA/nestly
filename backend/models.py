@@ -339,3 +339,23 @@ class Review(db.Model):
             'created_at': self.created_at.isoformat(),
             'customer_name': self.customer.name,
         }
+
+class Favourite(db.Model):
+    __tablename__ = 'favourites'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    business_id = db.Column(db.Integer, db.ForeignKey('businesses.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='favourites')
+    business = db.relationship('Business', backref='favourited_by')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'business_id': self.business_id,
+            'created_at': self.created_at.isoformat(),
+            'business': self.business.to_dict()
+        }

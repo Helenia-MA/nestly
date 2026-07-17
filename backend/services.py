@@ -1,5 +1,5 @@
 import bcrypt
-from models import BusinessPhoto, ServicePhoto, User, Business, WorkingHours, Service, Category, BlockedTime, Booking, Business, Review
+from models import BusinessPhoto, ServicePhoto, User, Business, WorkingHours, Service, Category, BlockedTime, Booking, Business, Review, Favourite
 from extensions import db
 from datetime import datetime, time, timedelta
 import cloudinary.uploader
@@ -1383,3 +1383,34 @@ def get_reviews(business_id):
     ).order_by(Review.created_at.desc()).all()
 
     return reviews, None
+
+# FAVORITES
+def toggle_favourite(user_id, business_id):
+    business = Business.query.get(business_id)
+    if not business:
+        return None, "Business not found"
+
+    existing = Favourite.query.filter_by(
+        user_id=int(user_id),
+        business_id=int(business_id)
+    ).first()
+
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return {'is_favourite': False}, None
+    else:
+        favourite = Favourite(
+            user_id=int(user_id),
+            business_id=int(business_id)
+        )
+        db.session.add(favourite)
+        db.session.commit()
+        return {'is_favourite': True}, None
+
+
+def get_favourites(user_id):
+    favourites = Favourite.query.filter_by(
+        user_id=int(user_id)
+    ).order_by(Favourite.created_at.desc()).all()
+    return favourites, None

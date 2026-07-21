@@ -1,6 +1,4 @@
 # Nestly
-(tentative name)
-
 A two-sided service booking marketplace currently for Kenya, connecting customers with local service businesses. Customers can explore businesses, browse their services, and book appointments online and business owners can manage bookings, staff schedules and their business profiles all in one place while getting an opportunity to advertise their services to a larger audience.
 
 
@@ -9,24 +7,27 @@ https://nestly-sage.vercel.app/
 
 ## Tech stack
 **Frontend;** React, Vite, Tailwind CSS, React Bug Calendar
+
 **Backend;** Flask, Python, SQLAlchemy, PostgreSQL
+
 **Auth;** JWT
+
 **Deployment;** Render(Backend), Vercel(Frontend)
 
 ## Running it locally
 **Backend**
-cd backend
-python -m venve venv
-source venv/bin/activate
-pip install -r requirements.txt
-flask db upgrade
-python seed.py
-flask run --port 5001
+* cd backend
+* python -m venve venv
+* source venv/bin/activate
+* pip install -r requirements.txt
+* flask db upgrade
+* python seed.py
+* flask run --port 5001
 
 **Frontend**
-cd frontend
-npm install
-npm run dev
+* cd frontend
+* npm install
+* npm run dev
 
 Then open http://localhost:5173/ 
 

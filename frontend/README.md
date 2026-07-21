@@ -1,16 +1,70 @@
-# React + Vite
+# Nestly
+(tentative name)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A two-sided service booking marketplace currently for Kenya, connecting customers with local service businesses. Customers can explore businesses, browse their services, and book appointments online and business owners can manage bookings, staff schedules and their business profiles all in one place while getting an opportunity to advertise their services to a larger audience.
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Live Demo
+https://nestly-sage.vercel.app/
 
-## React Compiler
+## Tech stack
+**Frontend;** React, Vite, Tailwind CSS, React Bug Calendar
+**Backend;** Flask, Python, SQLAlchemy, PostgreSQL
+**Auth;** JWT
+**Deployment;** Render(Backend), Vercel(Frontend)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Running it locally
+**Backend**
+cd backend
+python -m venve venv
+source venv/bin/activate
+pip install -r requirements.txt
+flask db upgrade
+python seed.py
+flask run --port 5001
 
-## Expanding the ESLint configuration
+**Frontend**
+cd frontend
+npm install
+npm run dev
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Then open http://localhost:5173/ 
+
+## Features
+**For customers;**
+- Browse services by category with search, price and distance filters
+- View business profiles with photos, services and reviews
+- Real-time availability booking with working hours engine
+- Manage upcoming and past bookings
+- Leave reviews after visits
+- Save favourite businesses
+
+**For business owners:**
+- Register and manage one or multiple businesses
+- Calendar view of all bookings (week/day/agenda filters)
+- Manage services with photos and pricing
+- Set working hours and blocked times (for breaks etc)
+- Upload verification documents
+- Dashboard with booking stats
+
+**For admins:**
+- Platform overview with key stats
+- Manage businesses (verify, pause, view owner)
+- Manage users (suspend/unsuspend)
+- Manage service categories
+
+## Screenshots of the main pages
+<img width="1470" height="956" alt="Screenshot 2026-07-21 at 3 29 58 AM" src="https://github.com/user-attachments/assets/664ca561-685b-4f40-9406-28e261b931f5" />
+
+
+
+## Planned (stretch goals)
+- Staff management system (per-staff availability and scheduling)
+- Email/SMS notifications
+- M-Pesa payment integration
+- AI assistant for customer support
+- Mobile app
+- Google OAuth option
+- Walk-in booking by owner
+
+

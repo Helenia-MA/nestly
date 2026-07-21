@@ -1,4 +1,3 @@
-<img width="1470" height="956" alt="Screenshot 2026-07-21 at 3 30 49 AM" src="https://github.com/user-attachments/assets/e10005dd-96b4-4a51-8d32-f3c330b662e4" />
 # Nestly
 (tentative name)
 

@@ -1,3 +1,4 @@
+<img width="1470" height="956" alt="Screenshot 2026-07-21 at 3 30 49 AM" src="https://github.com/user-attachments/assets/e10005dd-96b4-4a51-8d32-f3c330b662e4" />
 # Nestly
 (tentative name)
 
@@ -54,8 +55,14 @@ Then open http://localhost:5173/
 - Manage service categories
 
 ## Screenshots of the main pages
-<img width="1470" height="956" alt="Screenshot 2026-07-21 at 3 29 58 AM" src="https://github.com/user-attachments/assets/664ca561-685b-4f40-9406-28e261b931f5" />
+**Homepage**
+<img width="1470" height="956" alt="Screenshot 2026-07-21 at 3 31 14 AM" src="https://github.com/user-attachments/assets/cddb7892-1301-47cd-84c0-9c1a2087fe11" />
 
+**BusinessDashboard**
+<img width="1470" height="956" alt="Screenshot 2026-07-21 at 3 33 34 AM" src="https://github.com/user-attachments/assets/e4dc1b93-3c1b-494a-bade-a7b54f00950a" />
+
+**AdminDashboard**
+<img width="1470" height="956" alt="Screenshot 2026-07-21 at 3 34 09 AM" src="https://github.com/user-attachments/assets/902a926c-4973-4375-b3b9-706ade135fce" />
 
 
 ## Planned (stretch goals)
